@@ -8,7 +8,7 @@
 #include <opencv2/highgui.hpp>
 
 #include "player_class.h"
-#include "defines.h"
+#include "defines_Mission_Plaza.h"
 #include "measure2.h"
 
 using namespace std;

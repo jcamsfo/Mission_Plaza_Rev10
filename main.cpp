@@ -24,7 +24,7 @@
 #include <functional> // std::plus
 #include <string>
 
-#include "defines.h"
+#include "defines_Mission_Plaza.h"
 #include "player_class.h"
 #include "measure2.h"
 #include "USB_FTDI.h"
@@ -51,8 +51,6 @@ int main()
   Video_Sculpture SC1;
 
 
-  // Video_Player_With_Processing VP1("../../Movies/TSB3X.mov", "0");
-  // Video_Player_With_Processing VP2("../../Movies/flagblack.mov", "1");
 
   Prog_Durations Time_Delay[10];
   Prog_Durations Time_Delay_1(30);
@@ -112,8 +110,12 @@ int main()
         // FTX.FTDI_Txx(); // TxBuffer, Bytes_Wrote)
         // SC1.Play_All();
 
+
+
         std::thread t1(&Video_Sculpture::Play_All, &SC1);
+
         std::thread t2(&USB_FTDI_Channel::FTDI_Txx, &FTX);
+
         t1.join();
         t2.join();
 

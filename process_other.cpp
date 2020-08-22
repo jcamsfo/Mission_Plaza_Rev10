@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "defines.h"
+#include "defines_Mission_Plaza.h"
 #include "measure2.h"
 #include "process_other.h"
 
@@ -17,7 +17,12 @@ void Shift_Image_Horizontal(cv::Mat& Vid_In, int Initial_Location )
     // note by incrementing the location the movie can shift around in real time.
     // need to figure out how to do this.  Think I need an image class or structure
 
-	int ROI_Width_1 = IMAGE_COLS - Initial_Location ;
+
+    int Location_Wrap = Initial_Location % IMAGE_COLS;
+    // cout << endl << "Locatin_Wrap " << Location_Wrap << endl;
+
+
+    int ROI_Width_1 = IMAGE_COLS - Location_Wrap ;
     int ROI_Height 	= IMAGE_ROWS;
 	int ROI_Width_2 = IMAGE_COLS - ROI_Width_1;
 

@@ -55,15 +55,22 @@ void alphaBlend(Mat& foreground, Mat& background, Mat& alpha, Mat& outImage)
 Video_Sculpture::Video_Sculpture(void)
 {
 
+
   Sampled_Buffer_RGBW = new uint16_t[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Sampled_Buffer_RGBW_AF = new float[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Samples_Mapped_To_Sculpture = new uint16_t[Buffer_W_Gaps_Size_RGBW_Extra];
 
-  VP1x.setup("../../Movies/TSB3X.mov", "0");
-  VP2x.setup("../../Movies/flagblack.mov", "1");
+  // VP1x.setup("../../Movies/TSB3X.mov", "0");
+  // VP2x.setup("../../Movies/flagblack.mov", "1");
 
-  // VP1x.setup("../../Movies/black_rev5.mov", "0");
-  // VP2x.setup("../../Movies/black_rev5.mov", "1");
+
+
+
+
+  VP1x.setup("../../Movies/rainbow.mp4", "0");
+  VP2x.setup("../../Movies/comp4_264.mov", "1");
+
+
 
   VideoSum_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
@@ -83,6 +90,10 @@ Video_Sculpture::Video_Sculpture(void)
   display_on_X = true;
 
   local_oop = 0;
+
+
+
+
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -97,22 +108,27 @@ Video_Sculpture::Video_Sculpture(void)
 
 void Video_Sculpture::Read_Maps(void)
 {
-  Read_2D(Sample_Points_Map_V, "../../Maps/Day_For_Night_Sample_Map.csv");
+  Read_2D(Sample_Points_Map_V, "../../Maps/Mission_Plaza_Sample_Map.csv");
 
-  Read_1D(Sculpture_Map, "../../Maps/Day_For_Night_Sculpture_Map.csv");
+  Read_1D(Sculpture_Map, "../../Maps/Mission_Plaza_Sculpture_Map.csv");
 
   // ignore the 1st line of descriptions
-  Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
+  // Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
 }
 
 
 void Video_Sculpture::Play_All(void)
 {
 
+
+
   std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
   t1.join();
   t2.join();
+
+
+
 
   // no difference with threading  seems automatic
   // VP1x.Process();

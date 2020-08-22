@@ -2,7 +2,7 @@
 #define PROCESS_OTHER_H
 #pragma once
 
-#include "defines.h"
+#include "defines_Mission_Plaza.h"
 
 using namespace std;
 using namespace cv;

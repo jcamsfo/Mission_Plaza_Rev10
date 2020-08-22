@@ -30,6 +30,9 @@ Video_Player_With_Processing::Video_Player_With_Processing(void){
 
 Video_Player_With_Processing::Video_Player_With_Processing(string File_Name, string NameX)
 {
+
+  cout << " File_Name PC " << File_Name  << endl;
+
   capMain.open(File_Name);
   capWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
   capHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
@@ -71,10 +74,16 @@ Video_Player_With_Processing::Video_Player_With_Processing(string File_Name, str
 
 void Video_Player_With_Processing::setup(string File_Name, string NameX)
 {
+
+
+
+
   capMain.open(File_Name);
   capWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
   capHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
   capLength = capMain.get(cv::CAP_PROP_FRAME_COUNT);
+
+
 
 
   // KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
@@ -109,6 +118,8 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX)
   // figure out where to put this as it's for the building not so much for the picture
   // like color correction
   Image_Gamma = 0;
+
+
 };
 
 
@@ -123,8 +134,9 @@ void Video_Player_With_Processing::Process(void)
       capMain.set(cv::CAP_PROP_POS_FRAMES, 0);
 
     // Change_Seam(img_in_A, 1);  not a UMat function
-    Shift_Image_Horizontal(VideoMain, 512);
+     Shift_Image_Horizontal(VideoMain, 180);
   }
+
 
   // convert to UMat for faster processing
   VideoMain.copyTo(VideoMain_U);

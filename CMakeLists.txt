@@ -57,8 +57,8 @@ set(SOURCE_FILES
 	main.cpp 
 	measure2.cpp 
 	process_other.cpp
-    process_filters.cpp	
-    player_class.cpp
+  process_filters.cpp	
+  player_class.cpp
   USB_FTDI.cpp
   sculpture_class.cpp
   file_io_2.cpp
