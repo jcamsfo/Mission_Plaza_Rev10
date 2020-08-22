@@ -1,0 +1,16 @@
+CMakeCache.txt
+CMakeFiles/
+*.log
+cmake_install.cmake
+.vscode/
+Makefile
+frame*
+.idea/
+cmake-build-debug/
+build/
+bin/
+obj/
+Movies/*
+Movie2.*
+
+
