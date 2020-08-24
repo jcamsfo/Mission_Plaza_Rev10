@@ -69,6 +69,9 @@ public:
 
     bool display_on_X;
 
+
+    // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+
     // for display conversion
     UMat VideoSum_FU, VideoSum_U;
     Mat VideoSumDisplay;
@@ -79,9 +82,14 @@ public:
     Mat VideoSum_Small_F;
     Mat VideoSum_Small_16;
 
+
+    UMat VP1x_Rotated_FU; 
+
     Mat Sample_Point_Mat;
 
     int local_oop;
+
+      int Rotating_Angle ;
 
       Prog_Durations time_test;
 };

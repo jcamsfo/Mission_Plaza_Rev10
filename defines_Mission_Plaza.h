@@ -140,6 +140,8 @@ constexpr int IMAGE_COLS = 360;
 constexpr int SAMPLE_ROWS = 50;
 constexpr int SAMPLE_COLS = 72;            // not every row is 256 long
 
+constexpr int V_SAMPLE_SPREAD = 5; 
+
 //*********************** IMAGE RELATED DONE  ****************** MISSION PLAZA****/
 
 

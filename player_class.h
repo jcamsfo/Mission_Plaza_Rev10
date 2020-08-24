@@ -56,6 +56,8 @@ public:
   float Color_Gain;
   float Image_Gamma; // different than building gamma
 
+  double Rotating_Angle;
+
   bool display_on;    
 };
 

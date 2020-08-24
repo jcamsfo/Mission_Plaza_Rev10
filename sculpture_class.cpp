@@ -49,8 +49,17 @@ void alphaBlend(Mat& foreground, Mat& background, Mat& alpha, Mat& outImage)
 }
 
 
+inline void rotate2(UMat & src, UMat & dst, double angle)   //rotate function returning mat object with parametres imagefile and angle
+{
+  // static int Rotating_Angle;
 
-
+  // Rotating_Angle++;
+  // if (Rotating_Angle >= 360)
+  //   Rotating_Angle = 0;
+  Point2f pt(src.cols / 2., src.rows / 2.);                      //point from where to rotate
+  Mat r = getRotationMatrix2D(pt, angle, 1.0);                      //Mat object for storing after rotation
+  warpAffine(src, dst, r, Size(src.cols , src.rows)); ///applie an affine transforation to image.
+}
 
 Video_Sculpture::Video_Sculpture(void)
 {
@@ -60,17 +69,15 @@ Video_Sculpture::Video_Sculpture(void)
   Sampled_Buffer_RGBW_AF = new float[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Samples_Mapped_To_Sculpture = new uint16_t[Buffer_W_Gaps_Size_RGBW_Extra];
 
+  // pictures for the tower
   // VP1x.setup("../../Movies/TSB3X.mov", "0");
   // VP2x.setup("../../Movies/flagblack.mov", "1");
-
-
-
-
 
   VP1x.setup("../../Movies/rainbow.mp4", "0");
   VP2x.setup("../../Movies/comp4_264.mov", "1");
 
 
+  VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
   VideoSum_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
@@ -90,9 +97,7 @@ Video_Sculpture::Video_Sculpture(void)
   display_on_X = true;
 
   local_oop = 0;
-
-
-
+  Rotating_Angle = 0;
 
 };
 
@@ -120,15 +125,10 @@ void Video_Sculpture::Read_Maps(void)
 void Video_Sculpture::Play_All(void)
 {
 
-
-
   std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
   t1.join();
   t2.join();
-
-
-
 
   // no difference with threading  seems automatic
   // VP1x.Process();
@@ -137,7 +137,18 @@ void Video_Sculpture::Play_All(void)
 
 void Video_Sculpture::Mixer(void)
 {
-  addWeighted(VP1x.VideoProc_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FU);
+
+  Rotating_Angle++;
+  if (Rotating_Angle >= 360)
+    Rotating_Angle = 0;
+  rotate2(VP1x.VideoProc_FU, VP1x_Rotated_FU, Rotating_Angle);
+
+  // Point2f pt(VP1x.VideoProc_FU.cols / 2., VP1x.VideoProc_FU.rows / 2.);                      //point from where to rotate
+  // Mat r = getRotationMatrix2D(pt, Rotating_Angle, 1.0);                      //Mat object for storing after rotation
+  //  warpAffine(VP1x.VideoProc_FU, VideoTemp_FU2, r, Size(VP1x.VideoProc_FU.cols, VP1x.VideoProc_FU.rows)); ///applie an affine transforation to image.
+
+  addWeighted(VP1x_Rotated_FU ,.5, VP2x.VideoProc_FU, .5, 0, VideoSum_FU);
+  //addWeighted(VP1x.VideoProc_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FU);
 }
 
 void Video_Sculpture::Display(void)
@@ -201,7 +212,7 @@ void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void
 
   for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
   {
-    yy = 2 + (4 * yy_arr); // up to 280
+    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
     {
       xx = Sample_Points_Map_V[yy_arr][xx_arr];
@@ -304,7 +315,7 @@ void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Ma
 
   time_test.Start_Delay_Timer();
 
-  for (int yy = 2; (yy < rowsY); yy += 4)
+  for (int yy = 2; (yy < rowsY); yy += V_SAMPLE_SPREAD)
   {
     xx_arr = 0;
     yy_arr = (yy - 2) >> 2;
@@ -331,6 +342,8 @@ void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Ma
   cout << " lower " << time_test.time_delay << endl;
 }
 
+
+
 void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src)
 {
   int xx_arr, yy_arr, yy, xx;
@@ -339,7 +352,7 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
   time_test.Start_Delay_Timer();
   for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
   {
-    yy = 2 + (4 * yy_arr); // up to 280
+    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
     {
       xx = Sample_Points_Map_V[yy_arr][xx_arr];
