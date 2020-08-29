@@ -71,19 +71,19 @@ Video_Sculpture::Video_Sculpture(void)
 
   // VP1x.setup("../../Movies/rainbow.mp4", "0", 1);
   VP2x.VideoSetup("../../Movies/comp4_264.mov", "1");
-  VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
+  // VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
 
 
 
     VP1x.VideoSetup("../../Movies/waterloop250.mov", "0");
     // VP2x.setup("../../Movies/watch_SM.tif", "1", 0);
-    // VP3x.setup("../../Movies/smallhand.tif", "2", 0);
+    VP3x.StillSetup("../../Movies/smallhand.tif", "2");
     // VP4x.setup("../../Movies/bighand.tif", "3", 0);        
 
 
 
-
-
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CREATES NOT NEEDED
   // VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VP3x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // // VP4x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);  

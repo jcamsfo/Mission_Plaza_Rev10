@@ -20,6 +20,7 @@ private:
 
   uint32_t ImageWidth;
   uint32_t ImageHeight;
+  uint32_t ImageChannels;
   uint32_t ImageDuration;
 
   // general terminology: _F is float _U is UMAt _FU is both

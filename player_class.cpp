@@ -140,6 +140,8 @@ void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
   Image_Gamma = 0;
 };
 
+
+
 void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
 {
 
@@ -148,6 +150,7 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   VideoMainAlpha = imread(File_Name, IMREAD_UNCHANGED);
   ImageWidth = VideoMainAlpha.cols;
   ImageHeight = VideoMainAlpha.rows;
+  ImageChannels = VideoMainAlpha.channels();  
   ImageDuration = 1;
 
   // split to BGR and Alpha
