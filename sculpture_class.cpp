@@ -129,11 +129,12 @@ void Video_Sculpture::Play_All(void)
   std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
   std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
-  //std::thread t4(&Video_Player_With_Processing::Process, &VP4x);  
+  std::thread t4(&Video_Player_With_Processing::AlphaProcess, &VP3x);  
   t1.join();
   t2.join();
   t3.join();
-  //t4.join();  
+  t4.join();  
+
 
 
   // no difference with threading  seems automatic

@@ -53,6 +53,8 @@ public:
 
   void Process(void);
 
+  void AlphaProcess(void);
+
   bool player_pause;
 
   UMat  VideoProc_FU;
