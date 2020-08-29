@@ -60,12 +60,14 @@ public:
 
     void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
 
-    void Add_Headers(void);
+    // void Add_Headers(void);
 
-    void Add_DMX(void);
+    // void Add_DMX(void);
 
     Video_Player_With_Processing VP1x;
     Video_Player_With_Processing VP2x;
+
+    Video_Player_With_Processing VP3x;
 
     bool display_on_X;
 
@@ -73,7 +75,7 @@ public:
     // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
 
     // for display conversion
-    UMat VideoSum_FU, VideoSum_U;
+    UMat VideoSum_FU, VideoSum_FUX,VideoSum_FUY, VideoSum_U;
     Mat VideoSumDisplay;
 
     // for mapping to sculpture

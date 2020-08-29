@@ -18,39 +18,125 @@ using namespace cv;
 inline void RGB_Gamma_Correction(cv::UMat &src, float Gamma_Correction)
 {
   UMat src_squared;
-  multiply(src, src, src_squared); // square
+  multiply(src, src, src_squared); // square  255 * too big
   addWeighted(src, 1 - Gamma_Correction, src_squared, .0039 * Gamma_Correction, 0.0, src);
 }
-
-
 
 Video_Player_With_Processing::Video_Player_With_Processing(void){
 
 };
 
-
-
 void Video_Player_With_Processing::setup(string File_Name, string NameX)
 {
 
+  Movie_Or_Still = 1;
+
   capMain.open(File_Name);
-  capWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
-  capHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
-  capLength = capMain.get(cv::CAP_PROP_FRAME_COUNT);
+  ImageWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
+  ImageHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
+  ImageDuration = capMain.get(cv::CAP_PROP_FRAME_COUNT);
 
   // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
 
+  VideoMainAlpha.create(ImageHeight, ImageWidth, CV_8UC(4));
 
-  VideoMain.create(capHeight, capWidth, CV_8UC(3));
-  VideoMain_U.create(capHeight, capWidth, CV_8UC(3));
-  VideoMain_FU.create(capHeight, capWidth, CV_32FC(3));
+  VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoMain_FU.create(ImageHeight, ImageWidth, CV_32FC(3));
 
-  VideoDisplay.create(capHeight, capWidth, CV_8UC(3));
-  VideoProc_FU.create(capHeight, capWidth, CV_8UC(3));
+  VideoDisplay.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoProc_FU.create(ImageHeight, ImageWidth, CV_8UC(3));
 
-  Color_Difference_FU3.create(capHeight, capWidth, CV_8UC(3));
-  Y_FU1.create(capHeight, capWidth, CV_8UC(1));
-  VideoTemp_FU3.create(capHeight, capWidth, CV_8UC(3));
+  Color_Difference_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+  Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
+  VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+
+
+
+  Alpha_Channel_F.create(ImageHeight, ImageWidth, CV_32FC(1));
+  Alpha_Channel.create(ImageHeight, ImageWidth, CV_8UC(1));
+
+  Mat VideoChannels3[3];  
+  Mat VideoChannels4[4];
+
+
+  player_pause = false;
+
+  display_name = NameX;
+
+  Ones2x2_A = false;
+  Ones3x3_A = true;
+  Ones4x4_A = false;
+  Ones5x5_A = true;
+  Ones6x6_A = false;
+  Ones7x7_A = false;
+
+  Gain = 1.;
+  Black_Level = 0;
+  Color_Gain = 2;
+
+  // figure out where to put this as it's for the building not so much for the picture
+  // like color correction
+  Image_Gamma = 0;
+};
+
+void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Movie_Or_Still_In)
+{
+
+  Movie_Or_Still = Movie_Or_Still_In;
+
+  if (Movie_Or_Still)
+  {
+    capMain.open(File_Name);
+    ImageWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
+    ImageHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
+    ImageDuration = capMain.get(cv::CAP_PROP_FRAME_COUNT);
+  }
+  else
+  {
+    VideoMainAlpha = imread(File_Name, IMREAD_UNCHANGED);
+    ImageWidth = VideoMainAlpha.cols;
+    ImageHeight = VideoMainAlpha.rows;
+    ImageDuration = 1;
+
+    // split to BGR and Alpha
+    split(VideoMainAlpha, VideoChannels4);
+
+
+    // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
+
+    // convert alpha channel to floating point 3 channel  0 - 1  
+    // this takes the 0 -> 255 and inverts it and scales it to  1 -> 0 
+    VideoChannels4[3].convertTo(Alpha_Channel_F1, CV_32F, -.0039216, 1);
+    // creata 3 channel from a 1 channel
+    cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
+    merge(temp, 3, Alpha_Channel_F);
+    merge(temp, 3, Alpha_Channel_F);  
+    Alpha_Channel_F.copyTo(Alpha_Channel_FU);  
+
+
+    // merge the 1st 3 channels of the 4 channel input
+    VideoChannels4[0].copyTo(VideoChannels3[0]);
+    VideoChannels4[1].copyTo(VideoChannels3[1]);
+    VideoChannels4[2].copyTo(VideoChannels3[2]);
+    merge(VideoChannels3, 3, VideoMain);    
+
+    // to view the appha channel
+    // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);  
+  }
+
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+
+  VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoMain_FU.create(ImageHeight, ImageWidth, CV_32FC(3));
+
+  VideoDisplay.create(ImageHeight, ImageWidth, CV_8UC(3));
+  VideoProc_FU.create(ImageHeight, ImageWidth, CV_8UC(3));
+
+  Color_Difference_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+  Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
+  VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
 
   player_pause = false;
 
@@ -74,17 +160,20 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX)
 
 void Video_Player_With_Processing::Process(void)
 {
-  if (!player_pause)
+
+  if (Movie_Or_Still)
   {
-    capMain >> VideoMain; // VideoMain;
-    // read the video file
-    if (capMain.get(cv::CAP_PROP_POS_FRAMES) == capLength)
-      capMain.set(cv::CAP_PROP_POS_FRAMES, 0);
+    if (!player_pause)
+    {
+      capMain >> VideoMain; // VideoMain;
+      // read the video file
+      if (capMain.get(cv::CAP_PROP_POS_FRAMES) == ImageDuration)
+        capMain.set(cv::CAP_PROP_POS_FRAMES, 0);
 
-    // Change_Seam(img_in_A, 1);  not a UMat function
-    Shift_Image_Horizontal(VideoMain, 180);
+      // Change_Seam(img_in_A, 1);  not a UMat function
+      Shift_Image_Horizontal(VideoMain, 180);
+    }
   }
-
 
   // convert to UMat for faster processing
   VideoMain.copyTo(VideoMain_U);

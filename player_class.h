@@ -2,12 +2,10 @@
 #define PLAYER_CLASS_H
 #pragma once
 
-
 #include <opencv2/core.hpp>
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-
 
 using namespace std;
 using namespace cv;
@@ -20,9 +18,19 @@ private:
   uint32_t capHeight;
   uint32_t capLength;
 
+  uint32_t ImageWidth;
+  uint32_t ImageHeight;
+  uint32_t ImageDuration;
+
   // general terminology: _F is float _U is UMAt _FU is both
 
+  Mat VideoMainAlpha;
   Mat VideoMain;
+
+  Mat VideoChannels3[3];  
+  Mat VideoChannels4[4];
+
+
   UMat VideoMain_U;
   UMat VideoMain_FU;
   UMat Color_Difference_FU3;
@@ -31,18 +39,24 @@ private:
 
   string display_name;
 
-
 public:
   Video_Player_With_Processing(string File_Name, string NameX);
-  Video_Player_With_Processing(void);  
+  Video_Player_With_Processing(void);
   void setup(string File_Name, string NameX);
+  void setup(string File_Name, string NameX, bool Movie_Or_Still);
+
+  bool Movie_Or_Still;
 
   void Process(void);
 
   bool player_pause;
 
-  UMat VideoProc_FU;
-  Mat  VideoDisplay;
+  UMat  VideoProc_FU;
+  Mat   VideoDisplay;
+  Mat   Alpha_Channel_F1;
+  Mat   Alpha_Channel_F;  
+  UMat  Alpha_Channel_FU;    
+  Mat   Alpha_Channel;  
 
   bool Ones2x2_A;
   bool Ones3x3_A;
@@ -58,8 +72,7 @@ public:
 
   double Rotating_Angle;
 
-  bool display_on;    
+  bool display_on;
 };
-
 
 #endif /* PLAYER_CLASS_H */

@@ -25,45 +25,41 @@ typedef Vec<uint16_t, 3> Pixel_Type;
 
 typedef Vec<float, 3> Pixel_Type_F;
 
-
-void alphaBlend(Mat& foreground, Mat& background, Mat& alpha, Mat& outImage)
+void alphaBlend(Mat &foreground, Mat &background, Mat &alpha, Mat &outImage)
 {
-     // Find number of pixels. 
-     int numberOfPixels = foreground.rows * foreground.cols * foreground.channels();
+  // Find number of pixels.
+  int numberOfPixels = foreground.rows * foreground.cols * foreground.channels();
 
-     // Get floating point pointers to the data matrices
-     float* fptr = reinterpret_cast<float*>(foreground.data);
-     float* bptr = reinterpret_cast<float*>(background.data);
-     float* aptr = reinterpret_cast<float*>(alpha.data);
-     float* outImagePtr = reinterpret_cast<float*>(outImage.data);
+  // Get floating point pointers to the data matrices
+  float *fptr = reinterpret_cast<float *>(foreground.data);
+  float *bptr = reinterpret_cast<float *>(background.data);
+  float *aptr = reinterpret_cast<float *>(alpha.data);
+  float *outImagePtr = reinterpret_cast<float *>(outImage.data);
 
-     // Loop over all pixesl ONCE
-     for( 
-       int i = 0; 
-       i < numberOfPixels; 
-       i++, outImagePtr++, fptr++, aptr++, bptr++
-     )
-     {
-         *outImagePtr = (*fptr)*(*aptr) + (*bptr)*(1 - *aptr);
-     }
+  // Loop over all pixesl ONCE
+  for (
+      int i = 0;
+      i < numberOfPixels;
+      i++, outImagePtr++, fptr++, aptr++, bptr++)
+  {
+    *outImagePtr = (*fptr) * (*aptr) + (*bptr) * (1 - *aptr);
+  }
 }
 
-
-inline void rotate2(UMat & src, UMat & dst, double angle)   //rotate function returning mat object with parametres imagefile and angle
+inline void rotate2(UMat &src, UMat &dst, double angle) //rotate function returning mat object with parametres imagefile and angle
 {
   // static int Rotating_Angle;
 
   // Rotating_Angle++;
   // if (Rotating_Angle >= 360)
   //   Rotating_Angle = 0;
-  Point2f pt(src.cols / 2., src.rows / 2.);                      //point from where to rotate
-  Mat r = getRotationMatrix2D(pt, angle, 1.0);                      //Mat object for storing after rotation
-  warpAffine(src, dst, r, Size(src.cols , src.rows)); ///applie an affine transforation to image.
+  Point2f pt(src.cols / 2., src.rows / 2.);          //point from where to rotate
+  Mat r = getRotationMatrix2D(pt, angle, 1.0);       //Mat object for storing after rotation
+  warpAffine(src, dst, r, Size(src.cols, src.rows)); ///applie an affine transforation to image.
 }
 
 Video_Sculpture::Video_Sculpture(void)
 {
-
 
   Sampled_Buffer_RGBW = new uint16_t[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Sampled_Buffer_RGBW_AF = new float[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
@@ -73,13 +69,24 @@ Video_Sculpture::Video_Sculpture(void)
   // VP1x.setup("../../Movies/TSB3X.mov", "0");
   // VP2x.setup("../../Movies/flagblack.mov", "1");
 
-  VP1x.setup("../../Movies/rainbow.mp4", "0");
-  VP2x.setup("../../Movies/comp4_264.mov", "1");
+  VP1x.setup("../../Movies/rainbow.mp4", "0", 1);
+  VP2x.setup("../../Movies/comp4_264.mov", "1", 1);
+  VP3x.setup("../../Movies/alpha_trans.tif", "3", 0);
+
+  // VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
+  // VP3x.setup("../../Movies/watch_SM.tif", "3", 0);
+
+
+
 
 
   VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
   VideoSum_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
+
+  VideoSum_FUX.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
+
+  VideoSum_FUY.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
   VideoSum_U.create(IMAGE_COLS, IMAGE_ROWS, CV_8UC3);
 
@@ -98,7 +105,6 @@ Video_Sculpture::Video_Sculpture(void)
 
   local_oop = 0;
   Rotating_Angle = 0;
-
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -121,14 +127,15 @@ void Video_Sculpture::Read_Maps(void)
   // Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
 }
 
-
 void Video_Sculpture::Play_All(void)
 {
 
   std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
+  std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
   t1.join();
   t2.join();
+  t3.join();
 
   // no difference with threading  seems automatic
   // VP1x.Process();
@@ -143,12 +150,12 @@ void Video_Sculpture::Mixer(void)
     Rotating_Angle = 0;
   rotate2(VP1x.VideoProc_FU, VP1x_Rotated_FU, Rotating_Angle);
 
-  // Point2f pt(VP1x.VideoProc_FU.cols / 2., VP1x.VideoProc_FU.rows / 2.);                      //point from where to rotate
-  // Mat r = getRotationMatrix2D(pt, Rotating_Angle, 1.0);                      //Mat object for storing after rotation
-  //  warpAffine(VP1x.VideoProc_FU, VideoTemp_FU2, r, Size(VP1x.VideoProc_FU.cols, VP1x.VideoProc_FU.rows)); ///applie an affine transforation to image.
+  addWeighted(VP1x_Rotated_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FUX);
 
-  addWeighted(VP1x_Rotated_FU ,.5, VP2x.VideoProc_FU, .5, 0, VideoSum_FU);
-  //addWeighted(VP1x.VideoProc_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FU);
+  multiply(VideoSum_FUX, VP3x.Alpha_Channel_FU, VideoSum_FUY);
+
+  addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FU);
+
 }
 
 void Video_Sculpture::Display(void)
@@ -166,6 +173,7 @@ void Video_Sculpture::Display(void)
   {
     imshow("1", VP1x.VideoDisplay);
     imshow("2", VP2x.VideoDisplay);
+    imshow("3", VP3x.VideoDisplay);
   }
   else
   {
@@ -173,6 +181,8 @@ void Video_Sculpture::Display(void)
       destroyWindow("1");
     if (cv::getWindowProperty("2", WND_PROP_AUTOSIZE) != -1)
       destroyWindow("2");
+    if (cv::getWindowProperty("3", WND_PROP_AUTOSIZE) != -1)
+      destroyWindow("3");
   }
 }
 
@@ -194,7 +204,7 @@ void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
   //     exit(0);
   // }
 
-  Add_Headers();
+  // Add_Headers();
 }
 
 // this was the fastet way that I measured
@@ -256,35 +266,35 @@ void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
   }
 }
 
-void Video_Sculpture::Add_Headers(void)
-{
-  int Enclosure_Header_Start, Panel1_Header_Location;
-  int Offset;
+// void Video_Sculpture::Add_Headers(void)
+// {
+//   int Enclosure_Header_Start, Panel1_Header_Location;
+//   int Offset;
 
-  for (int ii = 0; ii < Enclosure_Info.size(); ii++)
-  {
-    // ENCLOSURE HEADER AREA
-    Enclosure_Header_Start = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 9);                                                 // in pixel lengths
-    Samples_Mapped_To_Sculpture[Enclosure_Header_Start] = 0xFFFF;                                                                // sync header 1
-    Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 1] = 0xAAAA;                                                            // sync header 2
-    Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 2] = ((uint16_t)Enclosure_Info[ii][Mapped_Enclosure_Address]) & 0x001F; // Mapped Enclosure #  0 - 31
+//   for (int ii = 0; ii < Enclosure_Info.size(); ii++)
+//   {
+//     // ENCLOSURE HEADER AREA
+//     Enclosure_Header_Start = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 9);                                                 // in pixel lengths
+//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start] = 0xFFFF;                                                                // sync header 1
+//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 1] = 0xAAAA;                                                            // sync header 2
+//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 2] = ((uint16_t)Enclosure_Info[ii][Mapped_Enclosure_Address]) & 0x001F; // Mapped Enclosure #  0 - 31
 
-    // Panel HEADER AREA
-    Panel1_Header_Location = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 1);
-    for (int ix = 0; ix < MAX_NUM_OF_PANELS; ix++)
-    {
-      Offset = (4 * Enclosure_Info[ii][Panel1_Offset + ix]);
-      if ((ix == 0) || (Offset > 0))
-      {
-        Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 0] = 0xFFFF;                  // sync header 1
-        Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 1] = 0x5555;                  // sync header 2
-        Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] = ((uint16_t)ix) & 0x0007; // 0 - 5
-        if (Enclosure_Info[ii][Panel1_LR + ix] == 1)
-          Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] |= 0x2000;
-      }
-    }
-  }
-}
+//     // Panel HEADER AREA
+//     Panel1_Header_Location = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 1);
+//     for (int ix = 0; ix < MAX_NUM_OF_PANELS; ix++)
+//     {
+//       Offset = (4 * Enclosure_Info[ii][Panel1_Offset + ix]);
+//       if ((ix == 0) || (Offset > 0))
+//       {
+//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 0] = 0xFFFF;                  // sync header 1
+//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 1] = 0x5555;                  // sync header 2
+//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] = ((uint16_t)ix) & 0x0007; // 0 - 5
+//         if (Enclosure_Info[ii][Panel1_LR + ix] == 1)
+//           Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] |= 0x2000;
+//       }
+//     }
+//   }
+// }
 
 // just started
 void Video_Sculpture::Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment)
@@ -342,8 +352,6 @@ void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Ma
   cout << " lower " << time_test.time_delay << endl;
 }
 
-
-
 void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src)
 {
   int xx_arr, yy_arr, yy, xx;
@@ -361,9 +369,9 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
       // uint8_t R0 = (Pixel_Vec[0] <= 100) ? Pixel_Vec[0] + 100 : 0;
       // uint8_t G0 = (Pixel_Vec[1] <= 100) ? Pixel_Vec[1] + 100 : 0;
       // uint8_t B0 = (Pixel_Vec[2] <= 100) ? Pixel_Vec[2] + 100 : 0;
-      uint8_t R0 = Pixel_Vec[0] + 100 ;
-      uint8_t G0 = Pixel_Vec[1] + 100 ;
-      uint8_t B0 = Pixel_Vec[2] + 100 ;      
+      uint8_t R0 = Pixel_Vec[0] + 100;
+      uint8_t G0 = Pixel_Vec[1] + 100;
+      uint8_t B0 = Pixel_Vec[2] + 100;
 
       src.at<Vec3b>(Point(xx, yy)) = {R0, G0, B0};
     }
