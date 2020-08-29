@@ -40,10 +40,13 @@ private:
   string display_name;
 
 public:
-  Video_Player_With_Processing(string File_Name, string NameX);
   Video_Player_With_Processing(void);
-  void setup(string File_Name, string NameX);
+  Video_Player_With_Processing(string File_Name, string NameX);
+
   void setup(string File_Name, string NameX, bool Movie_Or_Still);
+
+  void VideoSetup(string File_Name, string NameX);
+  void StillSetup(string File_Name, string NameX);    
 
   bool Movie_Or_Still;
 
