@@ -68,6 +68,7 @@ public:
     Video_Player_With_Processing VP2x;
 
     Video_Player_With_Processing VP3x;
+    Video_Player_With_Processing VP4x;    
 
     bool display_on_X;
 
@@ -86,6 +87,8 @@ public:
 
 
     UMat VP1x_Rotated_FU; 
+    UMat VP3x_Rotated_FU; 
+    UMat VP4x_Rotated_FU;         
 
     Mat Sample_Point_Mat;
 

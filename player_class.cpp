@@ -111,7 +111,6 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
     // creata 3 channel from a 1 channel
     cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
     merge(temp, 3, Alpha_Channel_F);
-    merge(temp, 3, Alpha_Channel_F);  
     Alpha_Channel_F.copyTo(Alpha_Channel_FU);  
 
 
@@ -124,6 +123,8 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
     // to view the appha channel
     // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);  
   }
+
+  
 
   // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
 

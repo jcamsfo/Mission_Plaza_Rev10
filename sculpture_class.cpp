@@ -69,18 +69,25 @@ Video_Sculpture::Video_Sculpture(void)
   // VP1x.setup("../../Movies/TSB3X.mov", "0");
   // VP2x.setup("../../Movies/flagblack.mov", "1");
 
-  VP1x.setup("../../Movies/rainbow.mp4", "0", 1);
-  VP2x.setup("../../Movies/comp4_264.mov", "1", 1);
-  VP3x.setup("../../Movies/alpha_trans.tif", "3", 0);
+  // VP1x.setup("../../Movies/rainbow.mp4", "0", 1);
+  // VP2x.setup("../../Movies/comp4_264.mov", "1", 1);
+  // VP3x.setup("../../Movies/alpha_trans.tif", "3", 0);
 
-  // VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
-  // VP3x.setup("../../Movies/watch_SM.tif", "3", 0);
+
+
+    VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
+    VP2x.setup("../../Movies/watch_SM.tif", "1", 0);
+    VP3x.setup("../../Movies/smallhand.tif", "2", 0);
+    VP4x.setup("../../Movies/bighand.tif", "3", 0);        
 
 
 
 
 
   VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
+  VP3x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
+  VP4x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);  
+
 
   VideoSum_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
 
@@ -133,30 +140,69 @@ void Video_Sculpture::Play_All(void)
   std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
   std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
+  std::thread t4(&Video_Player_With_Processing::Process, &VP4x);  
   t1.join();
   t2.join();
   t3.join();
+  t4.join();  
+
 
   // no difference with threading  seems automatic
   // VP1x.Process();
   // VP2x.Process();
 }
 
+// void Video_Sculpture::Mixer(void)
+// {
+
+//   Rotating_Angle++;
+//   if (Rotating_Angle >= 360)
+//     Rotating_Angle = 0;
+//   rotate2(VP1x.VideoProc_FU, VP1x_Rotated_FU, Rotating_Angle);
+
+//   addWeighted(VP1x_Rotated_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FUX);
+
+//   multiply(VideoSum_FUX, VP3x.Alpha_Channel_FU, VideoSum_FUY);
+
+//   addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FU);
+// }
+
+
+    // VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
+    // VP2x.setup("../../Movies/watch_SM.tif", "1", 0);
+    // VP3x.setup("../../Movies/smallhand.tif", "2", 0);
+    // VP4x.setup("../../Movies/bighand.tif", "3", 0);   
+
+
+
 void Video_Sculpture::Mixer(void)
 {
 
-  Rotating_Angle++;
-  if (Rotating_Angle >= 360)
-    Rotating_Angle = 0;
-  rotate2(VP1x.VideoProc_FU, VP1x_Rotated_FU, Rotating_Angle);
+  multiply(VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU, VideoSum_FUY);
+  VideoSum_FUY.copyTo(VideoSum_FU);
 
-  addWeighted(VP1x_Rotated_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FUX);
 
-  multiply(VideoSum_FUX, VP3x.Alpha_Channel_FU, VideoSum_FUY);
+  // Rotating_Angle++;
+  // if (Rotating_Angle >= 360)
+  //   Rotating_Angle = 0;
+  // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
 
-  addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FU);
+  // // addWeighted(VP1x_Rotated_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FUX);
+
+  // multiply(VP1x.VideoProc_FU, VP2x.Alpha_Channel_FU, VideoSum_FUY);
+
+
+
+  // addWeighted(VideoSum_FUY, 1, VP2x.VideoProc_FU, 1, 0, VideoSum_FU);
+
+  // VP3x_Rotated_FU.copyTo(VideoSum_FU);
+
+  // VP2x.Alpha_Channel_FU.copyTo(VideoSum_FU);
+  // multiply(VideoSum_FU, 255, VideoSum_FU);
 
 }
+
+
 
 void Video_Sculpture::Display(void)
 {
