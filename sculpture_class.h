@@ -77,7 +77,13 @@ public:
 
     // for display conversion
     UMat VideoSum_FU, VideoSum_FUX,VideoSum_FUY, VideoSum_U;
+    
+    UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF ;
+
+    UMat Alpha_Rotated;
+    
     Mat VideoSumDisplay;
+
 
     // for mapping to sculpture
     Mat VideoSum_F;
