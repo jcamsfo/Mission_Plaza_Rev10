@@ -18,111 +18,126 @@ class Video_Sculpture
 {
 private:
 public:
-    Video_Sculpture(void);
-    void Play_All(void);
-    void Mixer(void);
-    void Display(void);
+  Video_Sculpture(void);
+  void Play_All(void);
+  void Mixer(void);
+  void Display(void);
 
-    // Read the 2 maps from the files  Sample_Points_Map and Sculpture_Map
-    void Read_Maps(void);
+  void Build_Watch(void);
+  void Shrink_Watch(double scale_factor_h, double scale_factor_v);
 
-    // Map for Sampling the image   sometimes call grab_map
-    // Each row is different though they are all on a common grid
-    vector<vector<int>> Sample_Points_Map_V;
+  // Read the 2 maps from the files  Sample_Points_Map and Sculpture_Map
+  void Read_Maps(void);
 
-    // Panel Map in Transbay
-    // Map file for mapping the grabbed image to the way that the sculpture expects the data
-    vector<int> Sculpture_Map;
+  // Map for Sampling the image   sometimes call grab_map
+  // Each row is different though they are all on a common grid
+  vector<vector<int>> Sample_Points_Map_V;
 
+  // Panel Map in Transbay
+  // Map file for mapping the grabbed image to the way that the sculpture expects the data
+  vector<int> Sculpture_Map;
 
-    vector<vector<int>> Enclosure_Info;
-    
+  vector<vector<int>> Enclosure_Info;
 
-    // these 2 used to Sample the image pixels using the the Sample_Points_Map
-    uint16_t *Sampled_Buffer_RGBW;
-    float *Sampled_Buffer_RGBW_AF;
+  // these 2 used to Sample the image pixels using the the Sample_Points_Map
+  uint16_t *Sampled_Buffer_RGBW;
+  float *Sampled_Buffer_RGBW_AF;
 
-    uint16_t *Samples_Mapped_To_Sculpture;
+  uint16_t *Samples_Mapped_To_Sculpture;
 
+  // Grab the pixels from the image and store them in
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void);
 
-    // Grab the pixels from the image and store them in
-    void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void);
+  void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int xx);
 
-    void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int xx);
+  void Map_Subsampled_To_Sculpture(void);
 
-    void Map_Subsampled_To_Sculpture(void);
+  void Multi_Map_Image_To_Sculpture(void);
 
-    void Multi_Map_Image_To_Sculpture(void);
+  void Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src);
 
-    void Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src) ;
+  void Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src);
 
-    void Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src) ;
+  void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
 
-    void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
+  // void Add_Headers(void);
 
-    // void Add_Headers(void);
+  // void Add_DMX(void);
 
-    // void Add_DMX(void);
+  Video_Player_With_Processing VP1x;
+  Video_Player_With_Processing VP2x;
 
-    Video_Player_With_Processing VP1x;
-    Video_Player_With_Processing VP2x;
+  Video_Player_With_Processing VP3x;
+  Video_Player_With_Processing VP4x;
 
-    Video_Player_With_Processing VP3x;
-    Video_Player_With_Processing VP4x;    
+  bool display_on_X;
 
-    bool display_on_X;
+  // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
 
+  // for display conversion
+  UMat VideoSum_FU, VideoSum_FUX, VideoSum_FUY, VideoSum_U;
 
-    // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF;
 
-    // for display conversion
-    UMat VideoSum_FU, VideoSum_FUX,VideoSum_FUY, VideoSum_U;
-    
-    UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF ;
+  Mat VideoSum_FD;
 
-    Mat VideoSum_FD;
+  UMat VideoSum_FUDx, VideoSum_FUDy;
 
-    UMat VideoSum_FUDx, VideoSum_FUDy;
+  UMat Alpha_Resized_FU;
+  UMat Alpha_Comp_FU;
 
-    UMat Alpha_Resized_FU;
-    UMat Alpha_Comp_FU;
+  UMat Small_Hand_Video;
 
-    UMat Small_Hand_Video;
+  UMat VideoSum_Resized_FU;
 
+  UMat VideoSum_Comp_FU;
 
-    UMat VideoSum_Resized_FU;
+  Mat VideoSum_FE;
 
-    UMat  VideoSum_Comp_FU;
+  UMat Alpha_Rotated_U;
 
-    Mat  VideoSum_FE ;
+  Mat Alpha_Rotated;
 
-    UMat Alpha_Rotated_U;
+  Mat VideoSumDisplay;
 
-    Mat Alpha_Rotated;    
-    
-    Mat VideoSumDisplay;
+  Mat Zeros_Float_Mat;
 
-    Mat Zeros_Float_Mat;
+  UMat Watch_Image;
+  UMat Watch_Alpha;
+  UMat Small_Hand_Image;
+  UMat Small_Hand_Alpha;
+  UMat Big_Hand_Image;
+  UMat Big_Hand_Alpha;
 
+  UMat Watch_With_Small;
+  UMat Watch_With_Both;
 
-    // for mapping to sculpture
-    Mat VideoSum_F;
-    UMat VideoSum_Small_FU;
-    Mat VideoSum_Small_F;
-    Mat VideoSum_Small_16;
+  UMat Small_Hand_Image_Rotated;
+  UMat Small_Hand_Alpha_Rotated;
 
+  UMat Big_Hand_Image_Rotated;
+  UMat Big_Hand_Alpha_Rotated;
 
-    UMat VP1x_Rotated_FU; 
-    UMat VP3x_Rotated_FU; 
-    UMat VP4x_Rotated_FU;         
+  // for mapping to sculpture
+  Mat VideoSum_F;
+  UMat VideoSum_Small_FU;
+  Mat VideoSum_Small_F;
+  Mat VideoSum_Small_16;
 
-    Mat Sample_Point_Mat;
+  UMat VP1x_Rotated_FU;
+  UMat VP3x_Rotated_FU;
+  UMat VP4x_Rotated_FU;
 
-    int local_oop;
+  Mat Sample_Point_Mat;
 
-      int Rotating_Angle ;
+  int loc_x;
+  int loc_y;
 
-      Prog_Durations time_test;
+  int local_oop;
+
+  int Rotating_Angle;
+
+  Prog_Durations time_test;
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */

@@ -19,7 +19,7 @@ using namespace std::chrono;
 using namespace std;
 using namespace cv;
 
-#define Small_Hand_Image VP3x.VideoProc_FU
+// #define Small_Hand_Image VP3x.VideoProc_FU
 
 typedef Vec<uint8_t, 3> Pixel_Type_8b;
 
@@ -128,6 +128,41 @@ void Video_Sculpture::Read_Maps(void)
   // Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
 }
 
+inline void Video_Sculpture::Build_Watch(void)
+{
+  // these are just for clarifying naming only pointers not copied Mat data
+  Watch_Image = VP2x.VideoProc_FU;
+  Watch_Alpha = VP2x.Alpha_Channel_FU;
+
+  Small_Hand_Image = VP3x.VideoProc_FU;
+  Small_Hand_Alpha = VP3x.Alpha_Channel_FU;
+  Big_Hand_Image = VP4x.VideoProc_FU;
+  Big_Hand_Alpha = VP4x.Alpha_Channel_FU;
+
+  // small hand
+  rotate2(Small_Hand_Image, Small_Hand_Image_Rotated, 90);
+  rotate2(Small_Hand_Alpha, Small_Hand_Alpha_Rotated, 90);
+  Overlay(Small_Hand_Image_Rotated, Watch_Image, Small_Hand_Alpha_Rotated, Watch_With_Small);
+
+  // big hand
+  rotate2(Big_Hand_Image, Big_Hand_Image_Rotated, 90);
+  rotate2(Big_Hand_Alpha, Big_Hand_Alpha_Rotated, 20);
+  Overlay(Big_Hand_Image_Rotated, Watch_With_Small, Big_Hand_Alpha_Rotated, Watch_With_Both);
+}
+
+inline void Video_Sculpture::Shrink_Watch(double scale_factor_h, double scale_factor_v)
+{
+  resize(Watch_With_Both, VideoSum_Resized_FU, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
+  loc_x = (Watch_With_Both.cols - VideoSum_Resized_FU.cols) / 2;
+  loc_y = (Watch_With_Both.rows - VideoSum_Resized_FU.rows) / 2;
+  VideoSum_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
+  VideoSum_Resized_FU.copyTo(VideoSum_Comp_FU(cv::Rect(loc_x, loc_y, VideoSum_Resized_FU.cols, VideoSum_Resized_FU.rows)));
+  resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Resized_FU, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
+  Alpha_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
+  Alpha_Resized_FU.copyTo(Alpha_Comp_FU(cv::Rect(loc_x, loc_y, Alpha_Resized_FU.cols, Alpha_Resized_FU.rows)));
+}
+
+
 void Video_Sculpture::Play_All(void)
 {
 
@@ -199,34 +234,9 @@ void Video_Sculpture::Mixer(void)
     Rotating_Angle = 0;
   // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
 
-  // Watch_Image    = VP2x.VideoProc_FU;
-  // Watch_Alpha    = VP2x.Alpha_Channel_FU;
+  Build_Watch();
 
-  // Small_Hand_Image  = VP3x.VideoProc_FU;
-  // Small_Hand_Alpha  = VP3x.Alpha_Channel_FU;
-  // Big_Hand_Image    = VP4x.VideoProc_FU;
-  // Big_Hand_Alpha    = VP4x.Alpha_Channel_FU;
-
-  // small hand
-  // multiply(VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU, VideoSum_FUY);
-  // addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FUB);
-  Overlay(VP3x.VideoProc_FU, VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU,  VideoSum_FUB);
-
-  // big hand
-  // multiply(VideoSum_FUB, VP4x.Alpha_Channel_FU, VideoSum_FUC);
-  // addWeighted(VideoSum_FUC, 1, VP4x.VideoProc_FU, 1, 0, VideoSum_FUD);
-  Overlay(VP4x.VideoProc_FU, VideoSum_FUB, VP4x.Alpha_Channel_FU,  VideoSum_FUD);  
-
-
-  resize(VideoSum_FUD, VideoSum_Resized_FU, Size(), .5, .3, INTER_LINEAR);
-  VideoSum_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
-  VideoSum_Resized_FU.copyTo(VideoSum_Comp_FU(cv::Rect(10, 10, VideoSum_Resized_FU.cols, VideoSum_Resized_FU.rows)));
-
-
-  resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Resized_FU, Size(), .5, .3, INTER_LINEAR);
-  Alpha_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
-  Alpha_Resized_FU.copyTo(Alpha_Comp_FU(cv::Rect(10, 10, Alpha_Resized_FU.cols, Alpha_Resized_FU.rows)));
-
+  Shrink_Watch(.2,.6);
 
   // resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Channel_Inv_Sized_FU, Size(), .5, .5, INTER_NEAREST);
 
