@@ -47,7 +47,8 @@ public:
   void setup(string File_Name, string NameX, bool Movie_Or_Still);
 
   void VideoSetup(string File_Name, string NameX);
-  void StillSetup(string File_Name, string NameX);    
+  void StillSetup(string File_Name, string NameX);   
+  void StillSetupRev2(string File_Name, string NameX);     
 
   bool Movie_Or_Still;
 
@@ -58,6 +59,7 @@ public:
   bool player_pause;
 
   UMat  VideoProc_FU;
+  Mat   VideoProc_F;
   Mat   VideoDisplay;
   Mat   Alpha_Channel_F1;
   Mat   Alpha_Channel_F;  
@@ -69,6 +71,9 @@ public:
 
   Mat  Ones_Float_Mat;
   UMat  Ones_Float_Mat_U;  
+
+  Mat   Zeros_Float_Mat;
+  UMat  Zeros_Float_Mat_U;  
 
 
 

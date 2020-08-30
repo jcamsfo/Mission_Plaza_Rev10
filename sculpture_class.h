@@ -80,6 +80,20 @@ public:
     
     UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF ;
 
+    Mat VideoSum_FD;
+
+    UMat VideoSum_FUDx, VideoSum_FUDy;
+
+    UMat Alpha_Resized_FU;
+    UMat Alpha_Comp_FU;
+
+    UMat Small_Hand_Video;
+
+
+    UMat VideoSum_Resized_FU;
+
+    UMat  VideoSum_Comp_FU;
+
     Mat  VideoSum_FE ;
 
     UMat Alpha_Rotated_U;
@@ -87,6 +101,8 @@ public:
     Mat Alpha_Rotated;    
     
     Mat VideoSumDisplay;
+
+    Mat Zeros_Float_Mat;
 
 
     // for mapping to sculpture

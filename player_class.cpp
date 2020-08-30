@@ -163,6 +163,15 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
   Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
 
+
+
+  Zeros_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat = cv::Scalar(0.0, 0.0, 0.0);
+
+  Zeros_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);  
+    
+
   // split to BGR and Alpha
   split(VideoMainAlpha, VideoChannels4);
 
@@ -218,6 +227,101 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   // like color correction
   Image_Gamma = 0;
 };
+
+
+
+// rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
+void Video_Player_With_Processing::StillSetupRev2(string File_Name, string NameX)
+{
+
+  Movie_Or_Still = 0;
+
+  VideoMainAlpha = imread(File_Name, IMREAD_UNCHANGED);
+  ImageWidth = VideoMainAlpha.cols;
+  ImageHeight = VideoMainAlpha.rows;
+  ImageChannels = VideoMainAlpha.channels();
+  ImageDuration = 1;
+
+  Ones_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat = cv::Scalar(1.0, 1.0, 1.0);
+
+  Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
+
+
+  Zeros_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat = cv::Scalar(0.0, 0.0, 0.0);
+
+  Zeros_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);  
+
+
+  // split to BGR and Alpha
+  split(VideoMainAlpha, VideoChannels4);
+
+  // merge the 1st 3 channels of the 4 channel input
+  VideoChannels4[0].copyTo(VideoChannels3[0]);
+  VideoChannels4[1].copyTo(VideoChannels3[1]);
+  VideoChannels4[2].copyTo(VideoChannels3[2]);
+  merge(VideoChannels3, 3, VideoMain);
+
+  // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
+
+  // convert alpha channel to floating point 3 channel  0 - 1
+  // this takes the 0 -> 255 and inverts it and scales it to  1 -> 0
+  VideoChannels4[3].convertTo(Alpha_Channel_F1, CV_32F, -.0039216, 1);
+  // creata 3 channel from a 1 channel
+  cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
+  merge(temp, 3, Alpha_Channel_F);
+  Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+
+  subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
+  Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+
+
+
+  // to view the appha channel
+  // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
+
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CREATES NOT NEEDED
+  // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_FU.create(ImageHeight, ImageWidth, CV_32FC(3));
+  // VideoDisplay.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoProc_FU.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Color_Difference_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
+  // VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+
+  player_pause = false;
+
+  display_name = NameX;
+
+  Ones2x2_A = false;
+  Ones3x3_A = true;
+  Ones4x4_A = false;
+  Ones5x5_A = true;
+  Ones6x6_A = false;
+  Ones7x7_A = false;
+
+
+
+  Gain = 1.;
+  Black_Level = 0;
+  Color_Gain = 2;
+
+  // figure out where to put this as it's for the building not so much for the picture
+  // like color correction
+  Image_Gamma = 0;
+
+  Process();
+  AlphaProcess();
+
+};
+
+
+
 
 void Video_Player_With_Processing::Process(void)
 {
@@ -279,11 +383,15 @@ void Video_Player_With_Processing::Process(void)
   // chroma_gain*((B-Y,  G-Y,  R-Y)  +  B,G,R  to get back to BGR with color level changed
   add(VideoTemp_FU3, Color_Difference_FU3, VideoProc_FU);
 
+  VideoProc_FU.copyTo(VideoProc_F);
+
   // convert back to 8 bits unsigned integer  for the display
   VideoProc_FU.convertTo(VideoMain_U, CV_8UC3);
   // make a copy for the display in 8 bit Mat vs UMat
   VideoMain_U.copyTo(VideoDisplay);
 }
+
+
 
 void Video_Player_With_Processing::AlphaProcess(void)
 {
@@ -319,11 +427,4 @@ void Video_Player_With_Processing::AlphaProcess(void)
   if (Ones7x7_A)
     blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(7, 7));
 
-
-
-
-  // // convert back to 8 bits unsigned integer  for the display
-  // Alpha_Channel_FU.convertTo(VideoMain_U, CV_8UC3);
-  // // make a copy for the display in 8 bit Mat vs UMat
-  // VideoMain_U.copyTo(VideoDisplay);
 }

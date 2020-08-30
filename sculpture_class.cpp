@@ -19,6 +19,8 @@ using namespace std::chrono;
 using namespace std;
 using namespace cv;
 
+#define Small_Hand_Image VP3x.VideoProc_FU
+
 typedef Vec<uint8_t, 3> Pixel_Type_8b;
 
 typedef Vec<uint16_t, 3> Pixel_Type;
@@ -58,6 +60,13 @@ inline void rotate2(UMat &src, UMat &dst, double angle) //rotate function return
   warpAffine(src, dst, r, Size(src.cols, src.rows)); ///applie an affine transforation to image.
 }
 
+inline void Overlay(UMat &Frgnd, UMat &Bkgnd, UMat &Alpha, UMat &Result)
+{
+  static UMat Temp;
+  multiply(Bkgnd, Alpha, Temp);
+  addWeighted(Temp, 1, Frgnd, 1, 0, Result);
+}
+
 Video_Sculpture::Video_Sculpture(void)
 {
 
@@ -73,20 +82,16 @@ Video_Sculpture::Video_Sculpture(void)
   // VP2x.VideoSetup("../../Movies/comp4_264.mov", "1");
   // VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
 
-
-
-    VP1x.VideoSetup("../../Movies/waterloop250.mov", "0");
-    VP2x.StillSetup("../../Movies/watch_SM.tif", "1");
-    VP3x.StillSetup("../../Movies/smallhand.tif", "2");
-    VP4x.StillSetup("../../Movies/bighand.tif", "3");        
-
-
+  VP1x.VideoSetup("../../Movies/waterloop250.mov", "0");
+  VP2x.StillSetupRev2("../../Movies/watch_SM.tif", "1");
+  VP3x.StillSetupRev2("../../Movies/smallhand.tif", "2");
+  VP4x.StillSetupRev2("../../Movies/bighand.tif", "3");
 
   // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
   // CREATES NOT NEEDED
   // VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VP3x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
-  // // VP4x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);  
+  // // VP4x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VideoSum_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VideoSum_FUX.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VideoSum_FUY.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
@@ -126,42 +131,40 @@ void Video_Sculpture::Read_Maps(void)
 void Video_Sculpture::Play_All(void)
 {
 
-  std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
-  std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
-  std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
-  std::thread t4(&Video_Player_With_Processing::Process, &VP4x);  
-  std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);  
-  std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);    
-  std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);       
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();  
-  t5.join();    
-  t6.join();  
-  t7.join();   
-
-
-
+  // all of the other images are stills!!!!!!!!!!!!!!!!!!
+  VP1x.Process();
 
   // std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
   // std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
   // std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
-  // std::thread t4(&Video_Player_With_Processing::Process, &VP4x);  
-  
+  // std::thread t4(&Video_Player_With_Processing::Process, &VP4x);
+  // std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);
+  // std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);
+  // std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);
   // t1.join();
   // t2.join();
   // t3.join();
-  // t4.join();  
+  // t4.join();
+  // t5.join();
+  // t6.join();
+  // t7.join();
 
+  // std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
+  // std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
+  // std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
+  // std::thread t4(&Video_Player_With_Processing::Process, &VP4x);
 
-  // std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);  
-  // std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);    
-  // std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);    
-  // t5.join();    
-  // t6.join();  
-  // t7.join();   
+  // t1.join();
+  // t2.join();
+  // t3.join();
+  // t4.join();
 
+  // std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);
+  // std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);
+  // std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);
+  // t5.join();
+  // t6.join();
+  // t7.join();
 
   // no difference with threading  seems automatic
   // VP1x.Process();
@@ -183,64 +186,74 @@ void Video_Sculpture::Play_All(void)
 //   addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FU);
 // }
 
-
-    // VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
-    // VP2x.setup("../../Movies/watch_SM.tif", "1", 0);
-    // VP3x.setup("../../Movies/smallhand.tif", "2", 0);
-    // VP4x.setup("../../Movies/bighand.tif", "3", 0);   
-
-
+// VP1x.setup("../../Movies/waterloop250.mov", "0", 1);
+// VP2x.setup("../../Movies/watch_SM.tif", "1", 0);
+// VP3x.setup("../../Movies/smallhand.tif", "2", 0);
+// VP4x.setup("../../Movies/bighand.tif", "3", 0);
 
 void Video_Sculpture::Mixer(void)
 {
 
-
-    Rotating_Angle++;
+  Rotating_Angle++;
   if (Rotating_Angle >= 360)
     Rotating_Angle = 0;
   // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
 
+  // Watch_Image    = VP2x.VideoProc_FU;
+  // Watch_Alpha    = VP2x.Alpha_Channel_FU;
+
+  // Small_Hand_Image  = VP3x.VideoProc_FU;
+  // Small_Hand_Alpha  = VP3x.Alpha_Channel_FU;
+  // Big_Hand_Image    = VP4x.VideoProc_FU;
+  // Big_Hand_Alpha    = VP4x.Alpha_Channel_FU;
+
   // small hand
-  multiply(VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU, VideoSum_FUY);
-  addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FUB);
+  // multiply(VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU, VideoSum_FUY);
+  // addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FUB);
+  Overlay(VP3x.VideoProc_FU, VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU,  VideoSum_FUB);
 
-// big hand
-   multiply(VideoSum_FUB, VP4x.Alpha_Channel_FU, VideoSum_FUC);
-   addWeighted(VideoSum_FUC, 1, VP4x.VideoProc_FU, 1, 0, VideoSum_FUD);
+  // big hand
+  // multiply(VideoSum_FUB, VP4x.Alpha_Channel_FU, VideoSum_FUC);
+  // addWeighted(VideoSum_FUC, 1, VP4x.VideoProc_FU, 1, 0, VideoSum_FUD);
+  Overlay(VP4x.VideoProc_FU, VideoSum_FUB, VP4x.Alpha_Channel_FU,  VideoSum_FUD);  
 
 
+  resize(VideoSum_FUD, VideoSum_Resized_FU, Size(), .5, .3, INTER_LINEAR);
+  VideoSum_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
+  VideoSum_Resized_FU.copyTo(VideoSum_Comp_FU(cv::Rect(10, 10, VideoSum_Resized_FU.cols, VideoSum_Resized_FU.rows)));
 
 
-  rotate2(VideoSum_FUD, VideoSum_FUE, Rotating_Angle);
-  rotate2(VP2x.Alpha_Channel_Inv_FU, Alpha_Rotated_U, Rotating_Angle);  
+  resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Resized_FU, Size(), .5, .3, INTER_LINEAR);
+  Alpha_Comp_FU = VP2x.Zeros_Float_Mat_U.clone();
+  Alpha_Resized_FU.copyTo(Alpha_Comp_FU(cv::Rect(10, 10, Alpha_Resized_FU.cols, Alpha_Resized_FU.rows)));
 
-  subtract( VP2x.Ones_Float_Mat_U, Alpha_Rotated_U , Alpha_Rotated_U);
 
+  // resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Channel_Inv_Sized_FU, Size(), .5, .5, INTER_NEAREST);
+
+  rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
+  rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
+
+  subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
 
   // Alpha_Rotated_U.copyTo(Alpha_Rotated);
-  // VideoSum_FUE.copyTo(VideoSum_FE);  
+  // VideoSum_FUE.copyTo(VideoSum_FE);
 
   // Shift_Image_Horizontal(Alpha_Rotated, 180);
   // Shift_Image_Horizontal(VideoSum_FE, 180);
 
   // Alpha_Rotated.copyTo(Alpha_Rotated_U);
-  // VideoSum_FE.copyTo(VideoSum_FUE);  
-  // multiply(VP1x.VideoProc_FU, Alpha_Rotated, VideoSum_FUF);  
-  // addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);  
-
+  // VideoSum_FE.copyTo(VideoSum_FUE);
+  // multiply(VP1x.VideoProc_FU, Alpha_Rotated, VideoSum_FUF);
+  // addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 
   //VideoSum_FUD.copyTo(VideoSum_FUE);
 
-
-  multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);  
+  multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 
-
-  // VideoSum_FUB.copyTo(VideoSum_FU);  
-
+  // VideoSum_FUB.copyTo(VideoSum_FU);
 
   // VP2x.VideoProc_FU.copyTo(VideoSum_FU);
-
 
   // Rotating_Angle++;
   // if (Rotating_Angle >= 360)
@@ -251,18 +264,13 @@ void Video_Sculpture::Mixer(void)
 
   // multiply(VP1x.VideoProc_FU, VP2x.Alpha_Channel_FU, VideoSum_FUY);
 
-
-
   // addWeighted(VideoSum_FUY, 1, VP2x.VideoProc_FU, 1, 0, VideoSum_FU);
 
   // VP3x_Rotated_FU.copyTo(VideoSum_FU);
 
   // VP2x.Alpha_Channel_FU.copyTo(VideoSum_FU);
   // multiply(VideoSum_FU, 255, VideoSum_FU);
-
 }
-
-
 
 void Video_Sculpture::Display(void)
 {
