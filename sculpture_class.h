@@ -80,7 +80,11 @@ public:
     
     UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF ;
 
-    UMat Alpha_Rotated;
+    Mat  VideoSum_FE ;
+
+    UMat Alpha_Rotated_U;
+
+    Mat Alpha_Rotated;    
     
     Mat VideoSumDisplay;
 

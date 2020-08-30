@@ -99,8 +99,6 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
   Image_Gamma = 0;
 };
 
-
-
 void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
 {
 
@@ -122,6 +120,12 @@ void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
   // Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
   // VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
 
+  Ones_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat = cv::Scalar(1.0, 1.0, 1.0);
+
+  Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
+
   player_pause = false;
 
   display_name = NameX;
@@ -142,8 +146,6 @@ void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
   Image_Gamma = 0;
 };
 
-
-
 void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
 {
 
@@ -152,21 +154,23 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   VideoMainAlpha = imread(File_Name, IMREAD_UNCHANGED);
   ImageWidth = VideoMainAlpha.cols;
   ImageHeight = VideoMainAlpha.rows;
-  ImageChannels = VideoMainAlpha.channels();  
+  ImageChannels = VideoMainAlpha.channels();
   ImageDuration = 1;
+
+  Ones_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat = cv::Scalar(1.0, 1.0, 1.0);
+
+  Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
 
   // split to BGR and Alpha
   split(VideoMainAlpha, VideoChannels4);
-
 
   // merge the 1st 3 channels of the 4 channel input
   VideoChannels4[0].copyTo(VideoChannels3[0]);
   VideoChannels4[1].copyTo(VideoChannels3[1]);
   VideoChannels4[2].copyTo(VideoChannels3[2]);
   merge(VideoChannels3, 3, VideoMain);
-
-
-
 
   // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
 
@@ -178,7 +182,8 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   merge(temp, 3, Alpha_Channel_F);
   Alpha_Channel_F.copyTo(Alpha_Channel_FU);
 
-
+  subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
+  Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
 
   // to view the appha channel
   // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
@@ -213,8 +218,6 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   // like color correction
   Image_Gamma = 0;
 };
-
-
 
 void Video_Player_With_Processing::Process(void)
 {
@@ -282,7 +285,6 @@ void Video_Player_With_Processing::Process(void)
   VideoMain_U.copyTo(VideoDisplay);
 }
 
-
 void Video_Player_With_Processing::AlphaProcess(void)
 {
 
@@ -302,9 +304,26 @@ void Video_Player_With_Processing::AlphaProcess(void)
     blur(Alpha_Channel_FU, Alpha_Channel_FU, Size(7, 7));
 
 
+  Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+  // filter choices in-series allowable   ***  NOMINAL 3 & 5 on  ***
+  if (Ones2x2_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(2, 2));
+  if (Ones3x3_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(3, 3));
+  if (Ones4x4_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(4, 4));
+  if (Ones5x5_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(5, 5));
+  if (Ones6x6_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(6, 6));
+  if (Ones7x7_A)
+    blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(7, 7));
+
+
+
+
   // // convert back to 8 bits unsigned integer  for the display
   // Alpha_Channel_FU.convertTo(VideoMain_U, CV_8UC3);
   // // make a copy for the display in 8 bit Mat vs UMat
   // VideoMain_U.copyTo(VideoDisplay);
 }
-

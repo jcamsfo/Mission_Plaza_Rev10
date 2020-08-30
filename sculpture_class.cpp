@@ -143,6 +143,26 @@ void Video_Sculpture::Play_All(void)
 
 
 
+
+  // std::thread t1(&Video_Player_With_Processing::Process, &VP1x);
+  // std::thread t2(&Video_Player_With_Processing::Process, &VP2x);
+  // std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
+  // std::thread t4(&Video_Player_With_Processing::Process, &VP4x);  
+  
+  // t1.join();
+  // t2.join();
+  // t3.join();
+  // t4.join();  
+
+
+  // std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);  
+  // std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);    
+  // std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);    
+  // t5.join();    
+  // t6.join();  
+  // t7.join();   
+
+
   // no difference with threading  seems automatic
   // VP1x.Process();
   // VP2x.Process();
@@ -180,27 +200,39 @@ void Video_Sculpture::Mixer(void)
     Rotating_Angle = 0;
   // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
 
-
-
   // small hand
   multiply(VP2x.VideoProc_FU, VP3x.Alpha_Channel_FU, VideoSum_FUY);
   addWeighted(VideoSum_FUY, 1, VP3x.VideoProc_FU, 1, 0, VideoSum_FUB);
-
-
 
 // big hand
    multiply(VideoSum_FUB, VP4x.Alpha_Channel_FU, VideoSum_FUC);
    addWeighted(VideoSum_FUC, 1, VP4x.VideoProc_FU, 1, 0, VideoSum_FUD);
 
+
+
+
   rotate2(VideoSum_FUD, VideoSum_FUE, Rotating_Angle);
-  rotate2(VP2x.Alpha_Channel_FU, Alpha_Rotated, Rotating_Angle);  
+  rotate2(VP2x.Alpha_Channel_Inv_FU, Alpha_Rotated_U, Rotating_Angle);  
+
+  subtract( VP2x.Ones_Float_Mat_U, Alpha_Rotated_U , Alpha_Rotated_U);
+
+
+  // Alpha_Rotated_U.copyTo(Alpha_Rotated);
+  // VideoSum_FUE.copyTo(VideoSum_FE);  
+
+  // Shift_Image_Horizontal(Alpha_Rotated, 180);
+  // Shift_Image_Horizontal(VideoSum_FE, 180);
+
+  // Alpha_Rotated.copyTo(Alpha_Rotated_U);
+  // VideoSum_FE.copyTo(VideoSum_FUE);  
+  // multiply(VP1x.VideoProc_FU, Alpha_Rotated, VideoSum_FUF);  
+  // addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);  
+
 
   //VideoSum_FUD.copyTo(VideoSum_FUE);
 
 
-  multiply(VP1x.VideoProc_FU, Alpha_Rotated, VideoSum_FUF);  
-
-
+  multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);  
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 
 

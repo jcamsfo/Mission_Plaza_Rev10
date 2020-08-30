@@ -64,6 +64,16 @@ public:
   UMat  Alpha_Channel_FU;    
   Mat   Alpha_Channel;  
 
+  Mat   Alpha_Channel_Inv_F;
+  UMat  Alpha_Channel_Inv_FU;
+
+  Mat  Ones_Float_Mat;
+  UMat  Ones_Float_Mat_U;  
+
+
+
+
+
   bool Ones2x2_A;
   bool Ones3x3_A;
   bool Ones4x4_A;
