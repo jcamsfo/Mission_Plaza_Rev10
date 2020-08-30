@@ -10,6 +10,6 @@ using namespace cv;
 
 
 void Shift_Image_Horizontal(cv::Mat& Vid_In, int Initial_Location );
-
+void Shift_Image_Horizontal_U(cv::UMat& Vid_In, int Initial_Location );
 
 #endif /* PROCESS_OTHER_H */

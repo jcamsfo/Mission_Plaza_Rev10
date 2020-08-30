@@ -26,6 +26,8 @@ public:
   void Build_Watch(void);
   void Shrink_Watch(double scale_factor_h, double scale_factor_v);
 
+  inline void Shrink_Object(UMat &src, UMat &src_alpha, UMat & dst, UMat & dst_alpha, double scale_factor_h, double scale_factor_v);
+
   // Read the 2 maps from the files  Sample_Points_Map and Sculpture_Map
   void Read_Maps(void);
 
@@ -136,6 +138,11 @@ public:
   int local_oop;
 
   int Rotating_Angle;
+
+  int X_Position;
+
+  float shrink_val;
+  float shrink_val_inc;
 
   Prog_Durations time_test;
 };

@@ -106,6 +106,9 @@ Video_Sculpture::Video_Sculpture(void)
 
   local_oop = 0;
   Rotating_Angle = 0;
+  shrink_val = 0.5;
+  shrink_val_inc = .01;
+  X_Position = 0;
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -162,6 +165,20 @@ inline void Video_Sculpture::Shrink_Watch(double scale_factor_h, double scale_fa
   Alpha_Resized_FU.copyTo(Alpha_Comp_FU(cv::Rect(loc_x, loc_y, Alpha_Resized_FU.cols, Alpha_Resized_FU.rows)));
 }
 
+inline void Video_Sculpture::Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v)
+{
+  static UMat resized;
+  static UMat resized_alpha;
+  static int x, y;
+  resize(src, resized, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
+  x = (src.cols - resized.cols) / 2;
+  y = (src.rows - resized.rows) / 2;
+  dst = VP2x.Zeros_Float_Mat_U.clone();
+  resized.copyTo(dst(cv::Rect(x, y, resized.cols, resized.rows)));
+  resize(src_alpha, resized_alpha, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
+  dst_alpha = VP2x.Zeros_Float_Mat_U.clone();
+  resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
+}
 
 void Video_Sculpture::Play_All(void)
 {
@@ -228,59 +245,45 @@ void Video_Sculpture::Play_All(void)
 
 void Video_Sculpture::Mixer(void)
 {
-
   Rotating_Angle++;
   if (Rotating_Angle >= 360)
     Rotating_Angle = 0;
-  // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
+
+  if (shrink_val >= .8)
+    shrink_val_inc = -.01;
+  else if (shrink_val <= .3)
+    shrink_val_inc = .01;
+  shrink_val += shrink_val_inc;
+
+  // cout << "shrink_val  "  << shrink_val << endl ;
+
+  // shrink_val = .52;
+
+  X_Position++;
 
   Build_Watch();
 
-  Shrink_Watch(.2,.6);
+  // Shrink_Watch(shrink_val, shrink_val);
+  // this shrinks the object, but puts it back in a full size Mat
 
-  // resize(VP2x.Alpha_Channel_Inv_FU, Alpha_Channel_Inv_Sized_FU, Size(), .5, .5, INTER_NEAREST);
+  Shrink_Object(Watch_With_Both, VP2x.Alpha_Channel_Inv_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
 
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
 
+
+  Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
+  Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
+
+
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
-
-  // Alpha_Rotated_U.copyTo(Alpha_Rotated);
-  // VideoSum_FUE.copyTo(VideoSum_FE);
-
-  // Shift_Image_Horizontal(Alpha_Rotated, 180);
-  // Shift_Image_Horizontal(VideoSum_FE, 180);
-
-  // Alpha_Rotated.copyTo(Alpha_Rotated_U);
-  // VideoSum_FE.copyTo(VideoSum_FUE);
-  // multiply(VP1x.VideoProc_FU, Alpha_Rotated, VideoSum_FUF);
-  // addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
-
-  //VideoSum_FUD.copyTo(VideoSum_FUE);
 
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
-
-  // VideoSum_FUB.copyTo(VideoSum_FU);
-
-  // VP2x.VideoProc_FU.copyTo(VideoSum_FU);
-
-  // Rotating_Angle++;
-  // if (Rotating_Angle >= 360)
-  //   Rotating_Angle = 0;
-  // rotate2(VP3x.VideoProc_FU, VP3x_Rotated_FU, Rotating_Angle);
-
-  // // addWeighted(VP1x_Rotated_FU, .5, VP2x.VideoProc_FU, .5, 0, VideoSum_FUX);
-
-  // multiply(VP1x.VideoProc_FU, VP2x.Alpha_Channel_FU, VideoSum_FUY);
-
-  // addWeighted(VideoSum_FUY, 1, VP2x.VideoProc_FU, 1, 0, VideoSum_FU);
-
-  // VP3x_Rotated_FU.copyTo(VideoSum_FU);
-
-  // VP2x.Alpha_Channel_FU.copyTo(VideoSum_FU);
-  // multiply(VideoSum_FU, 255, VideoSum_FU);
 }
+
+
+
 
 void Video_Sculpture::Display(void)
 {
