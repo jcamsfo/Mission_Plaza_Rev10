@@ -255,11 +255,8 @@ void Video_Sculpture::Mixer(void)
     shrink_val_inc = .01;
   shrink_val += shrink_val_inc;
 
-  // cout << "shrink_val  "  << shrink_val << endl ;
+    X_Position++;
 
-  // shrink_val = .52;
-
-  X_Position++;
 
   Build_Watch();
 
@@ -270,7 +267,6 @@ void Video_Sculpture::Mixer(void)
 
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
-
 
   Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
   Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
