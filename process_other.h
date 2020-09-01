@@ -13,6 +13,7 @@ void Shift_Image_Horizontal(cv::Mat& Vid_In, int InitH_Locational_Location );
 void Shift_Image_Horizontal_U(cv::UMat& Vid_In, int H_Location );
 
 void Shift_Image_Horizontal_Vertical_U(cv::UMat& Vid_In, int H_Location, int V_Location );
+void Shift_Image_Horizontal_Vertical_U2(cv::UMat &Vid_In, cv::UMat &Vid_Out, int H_Location, int V_Location, UMat & Bkgnd);
 
 void Shift_Image_Vertical_U(cv::UMat &Vid_In, int V_Location);
 

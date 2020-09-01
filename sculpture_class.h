@@ -112,6 +112,9 @@ public:
 
   UMat Alpha_Fade_Cloned_FU;
 
+  UMat  Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
+
+
   UMat Watch_Image;
   UMat Watch_Alpha;
   UMat Small_Hand_Image;

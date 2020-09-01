@@ -300,61 +300,59 @@ void Video_Sculpture::Mixer(void)
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
   //    maybe do a non UMat version
 
-  // this is really slow on the NUC!!!
-  // but only need to update the time once a minute or so
-
   Load_Time();
 
+  // this is really slow on the NUC!!!
+  // but only need to update the time once a minute or so
+  // adds the hands to the watch   
   Build_Watch();
-
-
-
-  // cout << " ImageWidth "  << AP1x.Alpha_Channel_FU.cols << "ImageHeight  "  << AP1x.Alpha_Channel_FU.rows  << " channels  "  << AP1x.Alpha_Channel_FU.channels() <<  "  "  << AP1x.Alpha_Channel_FU.type()  << endl ;
-  // cout << " ImageWidth "  << VP2x.Alpha_Channel_Inv_FU.cols << "ImageHeight  "  << VP2x.Alpha_Channel_Inv_FU.rows  << " channels  "  << VP2x.Alpha_Channel_Inv_FU.channels() <<  "  "  << VP2x.Alpha_Channel_Inv_FU.type() << endl ;
+  // check tduration of Build
+  // Watch_With_Both = VP2x.VideoProc_FU.clone();
 
 
   // works 
-  // Alpha_Fade_Shifted_FU = AP1x.Alpha_Channel_FU.clone() ;  
   // Shift_Image_Vertical_U(Alpha_Fade_Shifted_FU, 50, VP2x.Ones_Float_Mat_U);
   // seems faster
-  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, 70,  VP2x.Ones_Float_Mat_U);
+  // set the location of the watch vertical fader
+  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, 40,  VP2x.Ones_Float_Mat_U);
 
-
-
+  // multiply the 2 alphas the watch alpha and the fade alpha
   multiply(Alpha_Fade_Shifted_FU,  VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
+  // generate the final watch matted image
   multiply(Watch_With_Both, Alpha_Fade_Shifted_FU, Watch_With_Both_Faded_U);
   
 
-
-  Alpha_Fade_Shifted_FU.convertTo(DisplayTemp, CV_8U, 255);
-  // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);  
-  imshow("17", DisplayTemp);
-
-
-  // this shrinks the object, but puts it back in a full size Mat
+  // this shrinks the watch and its alpha , but puts them back in a full size Mat
   // Shrink_Object(Watch_With_Both, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
   Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
 
-
+  // this rotates the watch and its alpha
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
 
-  //Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
-  //Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
+    // this moves the watch and its alpha horizontally and vertically
+  Shift_Image_Horizontal_Vertical_U2(VideoSum_FUE, Watch_Shifted_FU, X_Position, 100, VP2x.Zeros_Float_Mat_U);
+  Shift_Image_Horizontal_Vertical_U2(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, X_Position, 100, VP2x.Zeros_Float_Mat_U);
 
-  Shift_Image_Horizontal_Vertical_U(VideoSum_FUE, X_Position, 0);
-  Shift_Image_Horizontal_Vertical_U(Alpha_Rotated_U, X_Position, 0);  
 
-  blur(VideoSum_FUE, VideoSum_FUE, Size(3, 3));
+  Watch_Alpha_Shifted_FU.convertTo(DisplayTemp, CV_8U, 255);
+  // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);  
+  imshow("17", DisplayTemp);
+
+  // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges
+  blur(Watch_Shifted_FU, VideoSum_FUE, Size(3, 3));
   blur(VideoSum_FUE, VideoSum_FUE, Size(5, 5));
-  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(3, 3));
+  blur(Watch_Alpha_Shifted_FU, Alpha_Rotated_U, Size(3, 3));
   blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
 
+//  create the inverted alpha for the background
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
 
+//  soft key the final watch over the waves
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 }
+
 
 
 
@@ -386,26 +384,14 @@ void Video_Sculpture::Display(void)
   }
 }
 
+
 void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 {
   Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
-
   Map_Subsampled_To_Sculpture();
-
-  // local_oop++;
-  // if (local_oop == 20)
-  // {
-  //     cout << endl;
-  //     for (int i = 0; i < 50; i++)
-  //     {
-
-  //         cout << (uint16_t)Samples_Mapped_To_Sculpture[i] << " ";
-  //     }
-  //     exit(0);
-  // }
-
-  // Add_Headers();
 }
+
+
 
 // this was the fastet way that I measured
 void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)
