@@ -48,7 +48,10 @@ public:
 
   void VideoSetup(string File_Name, string NameX);
   void StillSetup(string File_Name, string NameX);   
-  void StillSetupRev2(string File_Name, string NameX);     
+  void StillSetupWithAlpha(string File_Name, string NameX);    
+
+  void AlphaSetupNoProcess(string File_Name, string NameX);       
+
 
   bool Movie_Or_Still;
 

@@ -72,6 +72,8 @@ public:
   Video_Player_With_Processing VP3x;
   Video_Player_With_Processing VP4x;
 
+  Video_Player_With_Processing  AP1x;
+
   bool display_on_X;
 
   // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
@@ -104,6 +106,12 @@ public:
 
   Mat Zeros_Float_Mat;
 
+  UMat Watch_With_Both_Faded_U;
+
+  UMat Alpha_Fade_Shifted_FU;
+
+  UMat Alpha_Fade_Cloned_FU;
+
   UMat Watch_Image;
   UMat Watch_Alpha;
   UMat Small_Hand_Image;
@@ -130,14 +138,19 @@ public:
   UMat VP3x_Rotated_FU;
   UMat VP4x_Rotated_FU;
 
+  UMat  Alpha_Fade_FU, Alpha_Fade_Inv_FU;
+
   Mat Sample_Point_Mat;
+
+  Mat DisplayTemp;
 
   int loc_x;
   int loc_y;
 
   int local_oop;
 
-  int Rotating_Angle;
+  float Rotating_Angle;
+  float Rotating_Angle_inc ;
 
   int X_Position;
 
@@ -145,6 +158,16 @@ public:
   float shrink_val_inc;
 
   Prog_Durations time_test;
+
+
+  void Load_Time(void);
+  time_t time_time;
+  struct tm *time_X;
+
+  int64_t Current_Hour;
+  int64_t Current_Minute;
+  int64_t Current_Second;
+
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */

@@ -83,9 +83,12 @@ Video_Sculpture::Video_Sculpture(void)
   // VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
 
   VP1x.VideoSetup("../../Movies/waterloop250.mov", "0");
-  VP2x.StillSetupRev2("../../Movies/watch_SM.tif", "1");
-  VP3x.StillSetupRev2("../../Movies/smallhand.tif", "2");
-  VP4x.StillSetupRev2("../../Movies/bighand.tif", "3");
+  //VP2x.StillSetupRev2("../../Movies/watch_SM.tif", "1");
+  VP2x.StillSetupWithAlpha("../../Movies/wtc3s.tif", "1");
+  VP3x.StillSetupWithAlpha("../../Movies/smallhand.tif", "2");
+  VP4x.StillSetupWithAlpha("../../Movies/bighand.tif", "3");
+
+  AP1x.AlphaSetupNoProcess("../../Movies/fader_soft_3C.tif", "4");
 
   // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
   // CREATES NOT NEEDED
@@ -105,7 +108,8 @@ Video_Sculpture::Video_Sculpture(void)
   display_on_X = true;
 
   local_oop = 0;
-  Rotating_Angle = 0;
+  Rotating_Angle = 360;
+  Rotating_Angle_inc = 1;
   shrink_val = 0.5;
   shrink_val_inc = .01;
   X_Position = 0;
@@ -131,8 +135,32 @@ void Video_Sculpture::Read_Maps(void)
   // Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
 }
 
+void Video_Sculpture::Load_Time(void)
+{
+  time(&time_time);
+  time_X = localtime(&time_time);
+  Current_Hour = time_X->tm_hour;
+  Current_Minute = time_X->tm_min;
+  Current_Second = time_X->tm_sec;
+
+  //  cout << endl << "Current Day, Date and Time is = " << Current_Hour << " " << Current_Minute << " "  <<  Current_Second << endl ; // asctime(time_X);
+}
+
 inline void Video_Sculpture::Build_Watch(void)
 {
+  static int64_t Big_Hand_Angle, Small_Hand_Angle;
+
+  // Current_Hour = 11;
+  // Current_Minute = 58;
+
+  if (Current_Hour >= 12)
+    Current_Hour = Current_Hour - 12;
+
+  Big_Hand_Angle = 360 - Current_Minute * 6;
+
+  // 360 /12
+  Small_Hand_Angle = 360 - ((Current_Hour * 30) + Current_Minute / 2); //  -  Current_Minute/2 );
+
   // these are just for clarifying naming only pointers not copied Mat data
   Watch_Image = VP2x.VideoProc_FU;
   Watch_Alpha = VP2x.Alpha_Channel_FU;
@@ -143,13 +171,13 @@ inline void Video_Sculpture::Build_Watch(void)
   Big_Hand_Alpha = VP4x.Alpha_Channel_FU;
 
   // small hand
-  rotate2(Small_Hand_Image, Small_Hand_Image_Rotated, 90);
-  rotate2(Small_Hand_Alpha, Small_Hand_Alpha_Rotated, 90);
+  rotate2(Small_Hand_Image, Small_Hand_Image_Rotated, Small_Hand_Angle);
+  rotate2(Small_Hand_Alpha, Small_Hand_Alpha_Rotated, Small_Hand_Angle);
   Overlay(Small_Hand_Image_Rotated, Watch_Image, Small_Hand_Alpha_Rotated, Watch_With_Small);
 
   // big hand
-  rotate2(Big_Hand_Image, Big_Hand_Image_Rotated, 90);
-  rotate2(Big_Hand_Alpha, Big_Hand_Alpha_Rotated, 20);
+  rotate2(Big_Hand_Image, Big_Hand_Image_Rotated, Big_Hand_Angle);
+  rotate2(Big_Hand_Alpha, Big_Hand_Alpha_Rotated, Big_Hand_Angle);
   Overlay(Big_Hand_Image_Rotated, Watch_With_Small, Big_Hand_Alpha_Rotated, Watch_With_Both);
 }
 
@@ -179,6 +207,10 @@ inline void Video_Sculpture::Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst
   dst_alpha = VP2x.Zeros_Float_Mat_U.clone();
   resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
 }
+
+
+
+
 
 void Video_Sculpture::Play_All(void)
 {
@@ -245,39 +277,84 @@ void Video_Sculpture::Play_All(void)
 
 void Video_Sculpture::Mixer(void)
 {
-  Rotating_Angle++;
-  if (Rotating_Angle >= 360)
-    Rotating_Angle = 0;
+  // Rotating_Angle++;
+  // if (Rotating_Angle >= 360)
+  //   Rotating_Angle = 0;
 
-  if (shrink_val >= .8)
-    shrink_val_inc = -.01;
-  else if (shrink_val <= .3)
-    shrink_val_inc = .01;
+  if (Rotating_Angle >= 370)
+    Rotating_Angle_inc = -.2;
+  else if (Rotating_Angle <= 350)
+    Rotating_Angle_inc = .2;
+  Rotating_Angle += Rotating_Angle_inc;
+
+  if (shrink_val >= .6)
+    shrink_val_inc = -.001;
+  else if (shrink_val <= .5)
+    shrink_val_inc = .001;
   shrink_val += shrink_val_inc;
 
-    X_Position++;
+  X_Position += 3;
 
+  //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
+  //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
+  //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
+  //    maybe do a non UMat version
+
+  // this is really slow on the NUC!!!
+  // but only need to update the time once a minute or so
+
+  Load_Time();
 
   Build_Watch();
 
-  // Shrink_Watch(shrink_val, shrink_val);
-  // this shrinks the object, but puts it back in a full size Mat
 
-  Shrink_Object(Watch_With_Both, VP2x.Alpha_Channel_Inv_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
+
+  // cout << " ImageWidth "  << AP1x.Alpha_Channel_FU.cols << "ImageHeight  "  << AP1x.Alpha_Channel_FU.rows  << " channels  "  << AP1x.Alpha_Channel_FU.channels() <<  "  "  << AP1x.Alpha_Channel_FU.type()  << endl ;
+  // cout << " ImageWidth "  << VP2x.Alpha_Channel_Inv_FU.cols << "ImageHeight  "  << VP2x.Alpha_Channel_Inv_FU.rows  << " channels  "  << VP2x.Alpha_Channel_Inv_FU.channels() <<  "  "  << VP2x.Alpha_Channel_Inv_FU.type() << endl ;
+
+
+  // works 
+  // Alpha_Fade_Shifted_FU = AP1x.Alpha_Channel_FU.clone() ;  
+  // Shift_Image_Vertical_U(Alpha_Fade_Shifted_FU, 50, VP2x.Ones_Float_Mat_U);
+  // seems faster
+  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, 70,  VP2x.Ones_Float_Mat_U);
+
+
+
+  multiply(Alpha_Fade_Shifted_FU,  VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
+  multiply(Watch_With_Both, Alpha_Fade_Shifted_FU, Watch_With_Both_Faded_U);
+  
+
+
+  Alpha_Fade_Shifted_FU.convertTo(DisplayTemp, CV_8U, 255);
+  // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);  
+  imshow("17", DisplayTemp);
+
+
+  // this shrinks the object, but puts it back in a full size Mat
+  // Shrink_Object(Watch_With_Both, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
+  Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
+
 
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
 
-  Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
-  Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
+  //Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
+  //Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
 
+  Shift_Image_Horizontal_Vertical_U(VideoSum_FUE, X_Position, 0);d
+  Shift_Image_Horizontal_Vertical_U(Alpha_Rotated_U, X_Position, 0);  
+
+  blur(VideoSum_FUE, VideoSum_FUE, Size(3, 3));
+  blur(VideoSum_FUE, VideoSum_FUE, Size(5, 5));
+  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(3, 3));
+  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
 
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
 
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 }
-
 
 
 
@@ -389,36 +466,6 @@ void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
   }
 }
 
-// void Video_Sculpture::Add_Headers(void)
-// {
-//   int Enclosure_Header_Start, Panel1_Header_Location;
-//   int Offset;
-
-//   for (int ii = 0; ii < Enclosure_Info.size(); ii++)
-//   {
-//     // ENCLOSURE HEADER AREA
-//     Enclosure_Header_Start = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 9);                                                 // in pixel lengths
-//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start] = 0xFFFF;                                                                // sync header 1
-//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 1] = 0xAAAA;                                                            // sync header 2
-//     Samples_Mapped_To_Sculpture[Enclosure_Header_Start + 2] = ((uint16_t)Enclosure_Info[ii][Mapped_Enclosure_Address]) & 0x001F; // Mapped Enclosure #  0 - 31
-
-//     // Panel HEADER AREA
-//     Panel1_Header_Location = 4 * (Enclosure_Info[ii][First_Pixel_Location] - 1);
-//     for (int ix = 0; ix < MAX_NUM_OF_PANELS; ix++)
-//     {
-//       Offset = (4 * Enclosure_Info[ii][Panel1_Offset + ix]);
-//       if ((ix == 0) || (Offset > 0))
-//       {
-//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 0] = 0xFFFF;                  // sync header 1
-//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 1] = 0x5555;                  // sync header 2
-//         Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] = ((uint16_t)ix) & 0x0007; // 0 - 5
-//         if (Enclosure_Info[ii][Panel1_LR + ix] == 1)
-//           Samples_Mapped_To_Sculpture[Panel1_Header_Location + Offset + 2] |= 0x2000;
-//       }
-//     }
-//   }
-// }
-
 // just started
 void Video_Sculpture::Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment)
 {
@@ -502,71 +549,6 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
   time_test.End_Delay_Timer();
   cout << " lower2 " << time_test.time_delay << endl;
 }
-
-// uint8_t Red62 = Red_62_Combined;     // (shortloopcnt > 32) ? 255 : 0;
-// uint8_t Green62 = Green_62_Combined; //(shortloopcnt > 32) ? 255 : 0;
-// uint8_t Blue62 = Blue_62_Combined;   // (shortloopcnt > 32) ? 255 : 0;
-
-// uint8_t Red63 = Red_62_Combined;
-// uint8_t Green63 = Green_62_Combined;
-// uint8_t Blue63 = Blue_62_Combined;
-
-// uint8_t RedTRX = Red_62_Combined;
-// uint8_t GreenTRX = Green_62_Combined;
-// uint8_t BlueTRX = Blue_62_Combined;
-
-// uint8_t Red6465 = Red_62_Combined;
-// uint8_t Green6465 = Green_62_Combined;
-// uint8_t Blue6465 = Blue_62_Combined;
-
-// uint16_t RedConstellation = 35 * Red_62_Combined;
-// uint16_t GreenConstellation = 100 * Green_62_Combined;
-// uint16_t BlueConstellation = 100 * Blue_62_Combined;
-// uint16_t WhiteConstellation = 25;
-
-// Add_DMX(Map_Buffer_W_Gaps_RGBW, Enclosure_Info, Constellation_On, Lumen_Pulse_Upper_On, LP_62_On, LP_63_On, TRX_On,
-//         RedConstellation, GreenConstellation, BlueConstellation, WhiteConstellation,
-//         Red6465, Green6465, Blue6465,
-//         Red62, Green62, Blue62,
-//         Red63, Green63, Blue63,
-//         RedTRX, GreenTRX, BlueTRX);
-
-// formerly known as Panel_Mapper
-// void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int Words_Per_Pixel)
-// {
-//   for (int ii = 0; ii < Sculpture_Size_Pixels; ii++)
-//   {
-//     int iixx = Words_Per_Pixel * ii;
-//     int Panel_MapxX = Words_Per_Pixel * Panel_Map_Local[ii];
-//     for (int jj = 0; jj < Words_Per_Pixel; jj++)
-//       Vid_Mapped[Panel_MapxX + jj] = Vid_Sampled[iixx + jj];
-//   }
-// }
-
-// convert to array
-// for (i = 0; i < Sample_Points_Map_V.size(); i++)
-// {
-//   for (j = 0; j < Sample_Points_Map_V[i].size(); j++)
-//   {
-//     Sample_Points_Map_A[i][j] = Sample_Points_Map_V[i][j];
-//   }
-//   Num_Of_Samples_Per_Row[i] = j;
-// }
-
-// cout << endl;
-// for (int i = 0; i < Sample_Points_Map_V.size(); i++)
-// {
-//   cout << " START " << Sample_Points_Map_V.size() << " START 2 " << Sample_Points_Map_V[i].size() << " START 3 " << Sculpture_Map.size() << endl;
-// }
-
-// int xy=0;
-// for (int i = 0; i < Sample_Points_Map_V.size(); i++)
-// {
-//   for (int j = 0; j < Sample_Points_Map_V[i].size(); j++)
-//     cout << Sample_Points_Map_V[i][j] << " " ;
-//   cout << endl
-//        << endl;
-// }
 
 // void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_V_Float(cv::Mat src, float *Buffer, const vector<vector<int>> &SP)
 // {
@@ -720,3 +702,4 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
 //     }
 //   }
 // }
+// ALSO  FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!

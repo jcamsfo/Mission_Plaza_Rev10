@@ -163,11 +163,14 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
   Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
 
+
+
   Zeros_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
   Zeros_Float_Mat = cv::Scalar(0.0, 0.0, 0.0);
 
   Zeros_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
-  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);
+  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);  
+    
 
   // split to BGR and Alpha
   split(VideoMainAlpha, VideoChannels4);
@@ -225,8 +228,18 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   Image_Gamma = 0;
 };
 
+
+    cout << " ImageWidth "  << APx1.Alpha_Channel_FU.cols << "ImageHeight  "  << APx1.Alpha_Channel_FU.rows  << " channels  "  << APx1.Alpha_Channel_FU.channels() <<   endl ;
+   multiply(  APx1.Alpha_Channel_FU, APx1.Alpha_Channel_FU,  Alpha_Fade_FU );
+
+    exit(0);
+
+
+
+
+
 // rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
-void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string NameX)
+void Video_Player_With_Processing::StillSetupRev2(string File_Name, string NameX)
 {
 
   Movie_Or_Still = 0;
@@ -243,11 +256,13 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
   Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
 
+
   Zeros_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
   Zeros_Float_Mat = cv::Scalar(0.0, 0.0, 0.0);
 
   Zeros_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
-  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);
+  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);  
+
 
   // split to BGR and Alpha
   split(VideoMainAlpha, VideoChannels4);
@@ -270,6 +285,8 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
 
   subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
   Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+
+
 
   // to view the appha channel
   // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
@@ -296,6 +313,8 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   Ones6x6_A = false;
   Ones7x7_A = false;
 
+
+
   Gain = 1.;
   Black_Level = 0;
   Color_Gain = 2;
@@ -306,19 +325,9 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
 
   Process();
   AlphaProcess();
-};
-
-// rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
-void Video_Player_With_Processing::AlphaSetupNoProcess(string File_Name, string NameX)
-{
-
-  VideoMainAlpha = imread(File_Name, IMREAD_COLOR);
-
-  VideoMainAlpha.convertTo(Alpha_Channel_FU, CV_32F, .0039216);
-
-  display_name = NameX;
 
 };
+
 
 
 
@@ -390,6 +399,8 @@ void Video_Player_With_Processing::Process(void)
   VideoMain_U.copyTo(VideoDisplay);
 }
 
+
+
 void Video_Player_With_Processing::AlphaProcess(void)
 {
 
@@ -408,6 +419,7 @@ void Video_Player_With_Processing::AlphaProcess(void)
   if (Ones7x7_A)
     blur(Alpha_Channel_FU, Alpha_Channel_FU, Size(7, 7));
 
+
   Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
   // filter choices in-series allowable   ***  NOMINAL 3 & 5 on  ***
   if (Ones2x2_A)
@@ -422,4 +434,5 @@ void Video_Player_With_Processing::AlphaProcess(void)
     blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(6, 6));
   if (Ones7x7_A)
     blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(7, 7));
+
 }
