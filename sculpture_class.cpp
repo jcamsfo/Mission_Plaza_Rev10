@@ -342,7 +342,7 @@ void Video_Sculpture::Mixer(void)
   //Shift_Image_Horizontal_U(VideoSum_FUE, X_Position);
   //Shift_Image_Horizontal_U(Alpha_Rotated_U, X_Position);
 
-  Shift_Image_Horizontal_Vertical_U(VideoSum_FUE, X_Position, 0);d
+  Shift_Image_Horizontal_Vertical_U(VideoSum_FUE, X_Position, 0);
   Shift_Image_Horizontal_Vertical_U(Alpha_Rotated_U, X_Position, 0);  
 
   blur(VideoSum_FUE, VideoSum_FUE, Size(3, 3));
