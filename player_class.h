@@ -97,6 +97,10 @@ public:
   double Rotating_Angle;
 
   bool display_on;
+
+  
+
+
 };
 
 #endif /* PLAYER_CLASS_H */

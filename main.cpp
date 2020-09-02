@@ -51,8 +51,6 @@ int main()
 
   Video_Sculpture SC1;
 
-
-
   Prog_Durations Time_Delay[10];
   Prog_Durations Time_Delay_1(30);
   Prog_Durations Time_Delay_2(30);
@@ -104,14 +102,11 @@ int main()
         // }
         // pauseX_old = pauseX;
 
-
         FTX.FTDI_Load_TxBuffer((char *)SC1.Samples_Mapped_To_Sculpture);
 
         // no threading version
         // FTX.FTDI_Txx(); // TxBuffer, Bytes_Wrote)
         // SC1.Play_All();
-
-
 
         std::thread t1(&Video_Sculpture::Play_All, &SC1);
 
@@ -178,28 +173,37 @@ int main()
         Time_Delay_1.Start_Delay_Timer();
 
         Time_Delay_3.Start_Delay_Timer();
-        char c = -1;
-        c = (uint16_t)waitKey(1);
-        if (c != -1)
-        {
-          if (c == 27)
-            Finished = true;
-          else if ((c == 99) & (last_c == 227)) // "Cntrl C"
-          {
-            cout << "should be done " << endl;
-            Finished = true;
-          }
-          else if (c == 'p')
-            pauseX = !pauseX;
-          else if (c == 'd')
-          {
-            SC1.display_on_X = !SC1.display_on_X;
-          }
 
-          last_c = c;
-        }
+        unsigned char c = 255;
+        c = (unsigned char )waitKey(1);
+
+        SC1.KeyBoardInput(c, Finished);
         if (Finished)
           break;
+
+
+
+        // if (c != -1)
+        // {
+        //   if (c == 27)
+        //     Finished = true;
+        //   else if ((c == 99) & (last_c == 227)) // "Cntrl C"
+        //   {
+        //     cout << "should be done " << endl;
+        //     Finished = true;
+        //   }
+        //   else if (c == 'p')
+        //     pauseX = !pauseX;
+        //   else if (c == 'd')
+        //   {
+        //     SC1.display_on_X = !SC1.display_on_X;
+        //   }
+
+        //   last_c = c;
+        // }
+        // if (Finished)
+        //   break;
+
         Time_Delay_3.End_Delay_Timer();
       }
     }

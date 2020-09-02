@@ -105,19 +105,28 @@ Video_Sculpture::Video_Sculpture(void)
   // VideoSum_Small_F.create(IMAGE_COLS / 4, IMAGE_ROWS / 4, CV_32FC3);
   // VideoSum_Small_16.create(IMAGE_COLS / 4, IMAGE_ROWS / 4, CV_16UC3);
 
+  text_window.create(200, 600, CV_8UC3);
+
+  Key_Press = -1;
+
   display_on_X = true;
 
   local_oop = 0;
   Watch_Angle = 360;
   Watch_Angle_Inc = 1;
-  Watch_H_Size = 0.5;
-  Watch_V_Size = 0.5;
+  Watch_H_Size = 0.55;
+  Watch_V_Size = 0.55;
   Watch_H_Size_Inc = .01;
   Watch_V_Size_Inc = .01;
   Watch_H_Location = 0;
   Fade_V_Location = 0;
 
+  Watch_V_Location_Inc = .25;
+
   Watch_V_Location = -100;
+  Watch_H_Location_Inc = 3;
+
+  Select_Controls = 0;
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -219,6 +228,191 @@ inline void Video_Sculpture::Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst
   resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
 }
 
+void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, int x, int y)
+{
+
+  int Font_Type = FONT_HERSHEY_DUPLEX;
+  text_window.setTo(Scalar(100, 100, 20));
+
+  Scalar Onnn = Scalar(200, 200, 200);
+  Scalar Offf = Scalar(100, 100, 120);
+
+  Scalar Water_Color = (Select_Controls == 0) ? Onnn : Offf;
+  Scalar Watch_Color = (Select_Controls == 1) ? Onnn : Offf;
+
+  putText(text_window, format("Water Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma), Point(10, 20), Font_Type, .4, Water_Color, 1);
+
+  putText(text_window, format("Watch Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 1);
+  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size), Point(10, 70), Font_Type, .4, Watch_Color, 1);
+
+  namedWindow(Window_Name);
+  // moveWindow(Window_Name, x,y);
+  imshow(Window_Name, text_window);
+}
+
+void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
+{
+  static unsigned char last_kp, kp_2ago;
+  static string file_name;
+  static int New_Watch_Number, New_Water_Number;
+
+  if (kp != 255)
+  {
+    if (kp == 27)
+      Stop_Program = true;
+    else if ((kp == 99) & (last_kp == 227)) // "Cntrl C"
+    {
+      Stop_Program = true;
+    }
+    else if (kp == 's')
+    {
+      Select_Controls++;
+      if (Select_Controls >= 2)
+        Select_Controls = 0;
+    }
+
+    else if (kp == 'd')
+    {
+      display_on_X = !display_on_X;
+    }
+
+
+    else if(  (kp_2ago == 'w') & isdigit(last_kp)   & isdigit(kp) )
+    {
+        New_Watch_Number = kp - '0' +  10 * (last_kp - '0') ;
+        file_name = "../../Movies/wtc"  +   to_string(New_Watch_Number) + "s.tif" ;   //   10s.tif" ;
+        if( (New_Watch_Number >= 0) && (New_Watch_Number <= 11) )  VP2x.StillSetupWithAlpha(file_name, "1");
+        cout << endl << endl << "  file_name  "  << file_name  << endl << endl ;
+    }
+
+
+    else if(  (kp_2ago == 'r') & isdigit(last_kp)   & isdigit(kp) )
+    {
+        New_Water_Number = kp - '0' +  10 * (last_kp - '0') ;
+        file_name = "../../Movies/water"  +   to_string(New_Water_Number) + ".mov" ;   //   10s.tif" ;
+        if( (New_Water_Number >= 0) && (New_Water_Number <= 2) )  VP1x.VideoSetup(file_name, "0");
+        cout << endl << endl << "  file_name  "  << file_name  << endl << endl ;
+    }
+
+
+
+
+    // else if(  (kp_2ago == 's') & isdigit(last_kp)   & isdigit(c) )
+    // {
+
+    //     First_Sequence_Image_X = c - '0' +  10 * (last_kp - '0') ;
+    //     Sequence_On = true; // start on 's'
+    // }
+
+    
+
+    if (Select_Controls == 0)
+    {
+      if ((kp == ',') && (VP1x.Gain > .05))
+        VP1x.Gain -= .05;
+      else if ((kp == '.') && (VP1x.Gain < 1.95))
+        VP1x.Gain += .05;
+
+      if ((kp == 'k') && (VP1x.Color_Gain > .05))
+        VP1x.Color_Gain -= .05;
+      else if ((kp == 'l') && (VP1x.Color_Gain <= 1.95))
+        VP1x.Color_Gain += .05;
+
+      if ((kp == ';') && (VP1x.Image_Gamma > .05))
+        VP1x.Image_Gamma -= .05;
+      else if ((kp == 39) && (VP1x.Image_Gamma <= .95))
+        VP1x.Image_Gamma += .05;
+
+      if ((kp == '[') && (VP1x.Black_Level >= -.95))
+        VP1x.Black_Level -= .05;
+      else if ((kp == ']') && (VP1x.Black_Level <= .95))
+        VP1x.Black_Level += .05;
+    }
+    else if (Select_Controls == 1)
+    {
+      if ((kp == ',') && (VP2x.Gain > .05))
+      {
+        VP2x.Gain -= .05;
+        VP2x.Process();
+      }
+      else if ((kp == '.') && (VP2x.Gain < 1.95))
+      {
+        VP2x.Gain += .05;
+        VP2x.Process();
+      }
+
+      if ((kp == 'k') && (VP2x.Color_Gain > .05))
+      {
+        VP2x.Color_Gain -= .05;
+        VP2x.Process();
+      }
+      else if ((kp == 'l') && (VP2x.Color_Gain <= 1.95))
+      {
+        VP2x.Color_Gain += .05;
+        VP2x.Process();
+      }
+
+      if ((kp == ';') && (VP2x.Image_Gamma > .05))
+        VP2x.Image_Gamma -= .05;
+      else if ((kp == 39) && (VP2x.Image_Gamma <= .95))
+      {
+        VP2x.Image_Gamma += .05;
+        VP2x.Process();
+      }
+
+      if ((kp == '[') && (VP2x.Black_Level >= -.95))
+      {
+
+        VP2x.Black_Level -= .05;
+        VP2x.Process();
+      }
+      else if ((kp == ']') && (VP2x.Black_Level <= .95))
+      {
+        VP2x.Black_Level += .05;
+        VP2x.Process();
+      }
+
+      if ((kp == 'g') && (Watch_H_Location_Inc >=1))
+      {
+
+        Watch_H_Location_Inc--;
+      }
+      else if ((kp == 'h') && (Watch_H_Location_Inc <= 5))
+      {
+          Watch_H_Location_Inc++;
+      }
+
+       if ((kp == 'c') && (Watch_V_Location_Inc >=.05))
+       {
+
+           Watch_V_Location_Inc -= .05;
+       }
+       else if ((kp == 'v') && (Watch_V_Location_Inc <= 2))
+       {
+           Watch_V_Location_Inc += .05;
+       }
+
+
+       if ((kp == 'u') && (Watch_H_Size >=.3))
+       {
+           Watch_H_Size -= .05;
+       }
+       else if ((kp == 'i') && (Watch_H_Size <= .9))
+       {
+           Watch_H_Size += .05;
+       }
+
+
+
+    }
+
+    cout << " key  " << (uint)kp << " last key  " << (uint)last_kp << endl;
+
+    kp_2ago = last_kp; 
+    last_kp = kp;
+  }
+}
+
 void Video_Sculpture::Play_All(void)
 {
 
@@ -298,19 +492,19 @@ void Video_Sculpture::Mixer(void)
   // if (Rotating_Angle >= 360)
   //   Rotating_Angle = 0;
 
-  Watch_V_Location += .25;
+  Watch_V_Location += Watch_V_Location_Inc;
   if (Watch_V_Location >= 200)
     Watch_V_Location = -200;
 
   // Watch_V_Location = 0;
 
-  if (Watch_H_Size >= .8)
-    Watch_H_Size_Inc = -.0001;
-  else if (Watch_H_Size <= .3)
-    Watch_H_Size_Inc = .001;
-  Watch_H_Size += Watch_H_Size_Inc;
+  // if (Watch_H_Size >= .8)
+  //   Watch_H_Size_Inc = -.0001;
+  // else if (Watch_H_Size <= .3)
+  //   Watch_H_Size_Inc = .001;
+  // Watch_H_Size += Watch_H_Size_Inc;
 
-  Watch_H_Size = .55;
+  // Watch_H_Size = .55;
 
   if (Watch_V_Size >= .8)
     Watch_V_Size_Inc = -.0001;
@@ -318,7 +512,7 @@ void Video_Sculpture::Mixer(void)
     Watch_V_Size_Inc = .001;
   Watch_V_Size += Watch_V_Size_Inc;
 
- Watch_V_Size = .55;
+  Watch_V_Size = Watch_H_Size;
 
   if (Watch_Angle >= 370)
     Watch_Angle_Inc = -.2;
@@ -329,7 +523,7 @@ void Video_Sculpture::Mixer(void)
   // Watch_Angle = 5;
 
   // wraps automatically
-  Watch_H_Location  += 3;
+  Watch_H_Location += Watch_H_Location_Inc;
   // Watch_H_Location = 0;
 
   Fade_V_Location = 50;
@@ -363,19 +557,16 @@ void Video_Sculpture::Mixer(void)
   // Shrink_Object(Watch_With_Both, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
   Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);
 
-
-
   //  useful for isolating the scaling problem
   // UMat Mat_Temp;
   // resize(VideoSum_Comp_FU, Mat_Temp, Size(), .25, .25, INTER_NEAREST);
   // resize(Mat_Temp, Mat_Temp, Size(), 4, 4, INTER_NEAREST);
   // blur(Mat_Temp, Mat_Temp, Size(6, 6));
   // resize(Mat_Temp, Mat_Temp, Size(), 4, 4, INTER_NEAREST);
+  // Mat_Temp.convertTo(DisplayTemp, CV_8U, 1);
 
-
-  VideoSum_Comp_FU.convertTo(DisplayTemp, CV_8U, 1);
   // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);
-  imshow("17", DisplayTemp);
+  // imshow("17", DisplayTemp);
 
   // this rotates the watch and its alpha
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Watch_Angle);
@@ -409,6 +600,8 @@ void Video_Sculpture::Display(void)
 
   namedWindow("Sum", WINDOW_AUTOSIZE); // Create a window for display.
   imshow("Sum", VideoSumDisplay);      // Show our image inside it.
+
+  Display_Text_Mat("values", text_window, 50, 50);
 
   if (display_on_X)
   {

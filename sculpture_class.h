@@ -26,7 +26,7 @@ public:
   void Build_Watch(void);
   void Shrink_Watch(double scale_factor_h, double scale_factor_v);
 
-  inline void Shrink_Object(UMat &src, UMat &src_alpha, UMat & dst, UMat & dst_alpha, double scale_factor_h, double scale_factor_v);
+  inline void Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v);
 
   // Read the 2 maps from the files  Sample_Points_Map and Sculpture_Map
   void Read_Maps(void);
@@ -62,17 +62,17 @@ public:
 
   void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
 
-  // void Add_Headers(void);
+  void Display_Text_Mat(char Window_Name[100], Mat & text_window, int x, int y );
 
-  // void Add_DMX(void);
 
-  Video_Player_With_Processing VP1x;
+
+      Video_Player_With_Processing VP1x;
   Video_Player_With_Processing VP2x;
 
   Video_Player_With_Processing VP3x;
   Video_Player_With_Processing VP4x;
 
-  Video_Player_With_Processing  AP1x;
+  Video_Player_With_Processing AP1x;
 
   bool display_on_X;
 
@@ -112,8 +112,7 @@ public:
 
   UMat Alpha_Fade_Cloned_FU;
 
-  UMat  Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
-
+  UMat Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
 
   UMat Watch_Image;
   UMat Watch_Alpha;
@@ -141,11 +140,13 @@ public:
   UMat VP3x_Rotated_FU;
   UMat VP4x_Rotated_FU;
 
-  UMat  Alpha_Fade_FU, Alpha_Fade_Inv_FU;
+  UMat Alpha_Fade_FU, Alpha_Fade_Inv_FU;
 
   Mat Sample_Point_Mat;
 
   Mat DisplayTemp;
+
+  Mat text_window;
 
   int loc_x;
   int loc_y;
@@ -153,7 +154,6 @@ public:
   int local_oop;
 
   Prog_Durations time_test;
-
 
   void Load_Time(void);
   time_t time_time;
@@ -163,17 +163,25 @@ public:
   int64_t Current_Minute;
   int64_t Current_Second;
 
-  float     Watch_H_Size;
-  float     Watch_V_Size;  
-  float     Watch_Angle;      
-  uint64_t  Watch_H_Location;
-  float     Watch_V_Location;  
-  uint64_t  Fade_V_Location;   
+  float Watch_H_Size;
+  float Watch_V_Size;
+  float Watch_Angle;
+  uint64_t Watch_H_Location;
+  float Watch_V_Location;
+  uint64_t Fade_V_Location;
 
-  float     Watch_Angle_Inc;
-  float     Watch_H_Size_Inc;
-  float     Watch_V_Size_Inc;  
+  float Watch_Angle_Inc;
+  float Watch_H_Size_Inc;
+  float Watch_V_Size_Inc;
+  int   Watch_H_Location_Inc;
+  float   Watch_V_Location_Inc; 
+  
+   
 
+  char  Key_Press;
+  bool  Stop_Program;
+  int Select_Controls;
+  void KeyBoardInput(unsigned char & kp, bool & Stop_Program);
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */

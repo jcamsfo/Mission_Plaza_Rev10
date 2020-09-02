@@ -93,10 +93,11 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
   Gain = 1.;
   Black_Level = 0;
   Color_Gain = 2;
+  Image_Gamma = 0;  
 
   // figure out where to put this as it's for the building not so much for the picture
   // like color correction
-  Image_Gamma = 0;
+
 };
 
 void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
@@ -361,10 +362,10 @@ void Video_Player_With_Processing::Process(void)
     blur(VideoMain_FU, VideoMain_FU, Size(7, 7));
 
   // gain and black level
-  VideoMain_FU.convertTo(VideoMain_FU, -1, Gain, Black_Level);
+  VideoMain_FU.convertTo(VideoMain_FU, -1, Gain, Black_Level*100);
 
   // post gain gamma correction
-  RGB_Gamma_Correction(VideoMain_FU, 0.5);
+  RGB_Gamma_Correction(VideoMain_FU, Image_Gamma);
   // RGB_Gamma_Correction(VideoMain_FU, 0.0 );
 
   // adjust the color level and gamma!
