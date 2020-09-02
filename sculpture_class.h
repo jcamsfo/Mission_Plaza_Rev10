@@ -62,11 +62,9 @@ public:
 
   void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
 
-  void Display_Text_Mat(char Window_Name[100], Mat & text_window, int x, int y );
+  void Display_Text_Mat(char Window_Name[100], Mat &text_window, int x, int y);
 
-
-
-      Video_Player_With_Processing VP1x;
+  Video_Player_With_Processing VP1x;
   Video_Player_With_Processing VP2x;
 
   Video_Player_With_Processing VP3x;
@@ -173,15 +171,17 @@ public:
   float Watch_Angle_Inc;
   float Watch_H_Size_Inc;
   float Watch_V_Size_Inc;
-  int   Watch_H_Location_Inc;
-  float   Watch_V_Location_Inc; 
-  
-   
+  int Watch_H_Location_Inc;
+  float Watch_V_Location_Inc;
 
-  char  Key_Press;
-  bool  Stop_Program;
+  float Watch_H_Size_Begin;
+  float Watch_H_Size_End;
+
+  bool Select_Auto;
+  char Key_Press;
+  bool Stop_Program;
   int Select_Controls;
-  void KeyBoardInput(unsigned char & kp, bool & Stop_Program);
+  void KeyBoardInput(unsigned char &kp, bool &Stop_Program);
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */

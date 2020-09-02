@@ -126,7 +126,12 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_V_Location = -100;
   Watch_H_Location_Inc = 3;
 
+  Watch_H_Size_Begin = .35;
+  Watch_H_Size_End = .95;
+
   Select_Controls = 0;
+  Select_Auto = false;
+
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -243,7 +248,7 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   putText(text_window, format("Water Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma), Point(10, 20), Font_Type, .4, Water_Color, 1);
 
   putText(text_window, format("Watch Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 1);
-  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size), Point(10, 70), Font_Type, .4, Watch_Color, 1);
+  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d ", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto), Point(10, 70), Font_Type, .4, Watch_Color, 1);
 
   namedWindow(Window_Name);
   // moveWindow(Window_Name, x,y);
@@ -276,26 +281,29 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
       display_on_X = !display_on_X;
     }
 
-
-    else if(  (kp_2ago == 'w') & isdigit(last_kp)   & isdigit(kp) )
+    else if ((kp_2ago == 'w') & isdigit(last_kp) & isdigit(kp))
     {
-        New_Watch_Number = kp - '0' +  10 * (last_kp - '0') ;
-        file_name = "../../Movies/wtc"  +   to_string(New_Watch_Number) + "s.tif" ;   //   10s.tif" ;
-        if( (New_Watch_Number >= 0) && (New_Watch_Number <= 11) )  VP2x.StillSetupWithAlpha(file_name, "1");
-        cout << endl << endl << "  file_name  "  << file_name  << endl << endl ;
+      New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
+      file_name = "../../Movies/wtc" + to_string(New_Watch_Number) + "s.tif"; //   10s.tif" ;
+      if ((New_Watch_Number >= 0) && (New_Watch_Number <= 11))
+        VP2x.StillSetupWithAlpha(file_name, "1");
+      cout << endl
+           << endl
+           << "  file_name  " << file_name << endl
+           << endl;
     }
 
-
-    else if(  (kp_2ago == 'r') & isdigit(last_kp)   & isdigit(kp) )
+    else if ((kp_2ago == 'r') & isdigit(last_kp) & isdigit(kp))
     {
-        New_Water_Number = kp - '0' +  10 * (last_kp - '0') ;
-        file_name = "../../Movies/water"  +   to_string(New_Water_Number) + ".mov" ;   //   10s.tif" ;
-        if( (New_Water_Number >= 0) && (New_Water_Number <= 2) )  VP1x.VideoSetup(file_name, "0");
-        cout << endl << endl << "  file_name  "  << file_name  << endl << endl ;
+      New_Water_Number = kp - '0' + 10 * (last_kp - '0');
+      file_name = "../../Movies/water" + to_string(New_Water_Number) + ".mov"; //   10s.tif" ;
+      if ((New_Water_Number >= 0) && (New_Water_Number <= 2))
+        VP1x.VideoSetup(file_name, "0");
+      cout << endl
+           << endl
+           << "  file_name  " << file_name << endl
+           << endl;
     }
-
-
-
 
     // else if(  (kp_2ago == 's') & isdigit(last_kp)   & isdigit(c) )
     // {
@@ -303,8 +311,6 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     //     First_Sequence_Image_X = c - '0' +  10 * (last_kp - '0') ;
     //     Sequence_On = true; // start on 's'
     // }
-
-    
 
     if (Select_Controls == 0)
     {
@@ -372,43 +378,44 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         VP2x.Process();
       }
 
-      if ((kp == 'g') && (Watch_H_Location_Inc >=1))
+      if ((kp == 'g') && (Watch_H_Location_Inc >= 1))
       {
 
         Watch_H_Location_Inc--;
       }
       else if ((kp == 'h') && (Watch_H_Location_Inc <= 5))
       {
-          Watch_H_Location_Inc++;
+        Watch_H_Location_Inc++;
       }
 
-       if ((kp == 'c') && (Watch_V_Location_Inc >=.05))
-       {
+      if ((kp == 'c') && (Watch_V_Location_Inc >= .05))
+      {
 
-           Watch_V_Location_Inc -= .05;
-       }
-       else if ((kp == 'v') && (Watch_V_Location_Inc <= 2))
-       {
-           Watch_V_Location_Inc += .05;
-       }
+        Watch_V_Location_Inc -= .05;
+      }
+      else if ((kp == 'v') && (Watch_V_Location_Inc <= 2))
+      {
+        Watch_V_Location_Inc += .05;
+      }
 
+      if ((kp == 'u') && (Watch_H_Size >= .3))
+      {
+        Watch_H_Size -= .05;
+      }
+      else if ((kp == 'i') && (Watch_H_Size <= .9))
+      {
+        Watch_H_Size += .05;
+      }
 
-       if ((kp == 'u') && (Watch_H_Size >=.3))
-       {
-           Watch_H_Size -= .05;
-       }
-       else if ((kp == 'i') && (Watch_H_Size <= .9))
-       {
-           Watch_H_Size += .05;
-       }
-
-
-
+      if (kp == 'y')
+      {
+        Select_Auto = !Select_Auto;
+      }
     }
 
     cout << " key  " << (uint)kp << " last key  " << (uint)last_kp << endl;
 
-    kp_2ago = last_kp; 
+    kp_2ago = last_kp;
     last_kp = kp;
   }
 }
@@ -506,11 +513,17 @@ void Video_Sculpture::Mixer(void)
 
   // Watch_H_Size = .55;
 
-  if (Watch_V_Size >= .8)
-    Watch_V_Size_Inc = -.0001;
-  else if (Watch_V_Size <= .3)
-    Watch_V_Size_Inc = .001;
-  Watch_V_Size += Watch_V_Size_Inc;
+  // if (Watch_V_Size >= .8)
+  //   Watch_V_Size_Inc = -.0001;
+  // else if (Watch_V_Size <= .3)
+  //   Watch_V_Size_Inc = .001;
+  // Watch_V_Size += Watch_V_Size_Inc;
+
+  float V_Percent = (Watch_V_Location + 200) / 400;
+
+  float Watch_H_Size_Auto = V_Percent * (Watch_H_Size_End - Watch_H_Size_Begin) + Watch_H_Size_Begin;
+
+   if(Select_Auto) Watch_H_Size =  Watch_H_Size_Auto;
 
   Watch_V_Size = Watch_H_Size;
 
