@@ -258,6 +258,8 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   VideoChannels4[2].copyTo(VideoChannels3[2]);
   merge(VideoChannels3, 3, VideoMain);
 
+
+
   // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
 
   // convert alpha channel to floating point 3 channel  0 - 1

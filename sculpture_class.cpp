@@ -108,11 +108,16 @@ Video_Sculpture::Video_Sculpture(void)
   display_on_X = true;
 
   local_oop = 0;
-  Rotating_Angle = 360;
-  Rotating_Angle_inc = 1;
-  shrink_val = 0.5;
-  shrink_val_inc = .01;
-  X_Position = 0;
+  Watch_Angle = 360;
+  Watch_Angle_Inc = 1;
+  Watch_H_Size = 0.5;
+  Watch_V_Size = 0.5;
+  Watch_H_Size_Inc = .01;
+  Watch_V_Size_Inc = .01;
+  Watch_H_Location = 0;
+  Fade_V_Location = 0;
+
+  Watch_V_Location = -100;
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -193,24 +198,26 @@ inline void Video_Sculpture::Shrink_Watch(double scale_factor_h, double scale_fa
   Alpha_Resized_FU.copyTo(Alpha_Comp_FU(cv::Rect(loc_x, loc_y, Alpha_Resized_FU.cols, Alpha_Resized_FU.rows)));
 }
 
+// INTER_NEAREST        = 0,
+// /** bilinear interpolation */
+// INTER_LINEAR         = 1,
+// /** bicubic interpolation */
+// INTER_CUBIC          = 2,
+
 inline void Video_Sculpture::Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v)
 {
   static UMat resized;
   static UMat resized_alpha;
   static int x, y;
   resize(src, resized, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
-  x = (src.cols - resized.cols) / 2;
-  y = (src.rows - resized.rows) / 2;
+  x = (int)(.5 + (((float)(src.cols - resized.cols)) / 2));
+  y = (int)(.5 + (((float)(src.rows - resized.rows)) / 2));
   dst = VP2x.Zeros_Float_Mat_U.clone();
   resized.copyTo(dst(cv::Rect(x, y, resized.cols, resized.rows)));
   resize(src_alpha, resized_alpha, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
   dst_alpha = VP2x.Zeros_Float_Mat_U.clone();
   resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
 }
-
-
-
-
 
 void Video_Sculpture::Play_All(void)
 {
@@ -277,23 +284,55 @@ void Video_Sculpture::Play_All(void)
 
 void Video_Sculpture::Mixer(void)
 {
+
+  // uint64_t Watch_Size;
+  // uint64_t Watch_Size_Inc;
+  // uint64_t Watch_Angle;
+  // uint64_t Watch_Angle_Inc;
+
+  // uint64_t Watch_H_Location;
+  // uint64_t Watch_V_Location;
+  // uint64_t Fade_V_Location;
+
   // Rotating_Angle++;
   // if (Rotating_Angle >= 360)
   //   Rotating_Angle = 0;
 
-  if (Rotating_Angle >= 370)
-    Rotating_Angle_inc = -.2;
-  else if (Rotating_Angle <= 350)
-    Rotating_Angle_inc = .2;
-  Rotating_Angle += Rotating_Angle_inc;
+  Watch_V_Location += .25;
+  if (Watch_V_Location >= 200)
+    Watch_V_Location = -200;
 
-  if (shrink_val >= .6)
-    shrink_val_inc = -.001;
-  else if (shrink_val <= .5)
-    shrink_val_inc = .001;
-  shrink_val += shrink_val_inc;
+  // Watch_V_Location = 0;
 
-  X_Position += 3;
+  if (Watch_H_Size >= .8)
+    Watch_H_Size_Inc = -.0001;
+  else if (Watch_H_Size <= .3)
+    Watch_H_Size_Inc = .001;
+  Watch_H_Size += Watch_H_Size_Inc;
+
+  Watch_H_Size = .55;
+
+  if (Watch_V_Size >= .8)
+    Watch_V_Size_Inc = -.0001;
+  else if (Watch_V_Size <= .3)
+    Watch_V_Size_Inc = .001;
+  Watch_V_Size += Watch_V_Size_Inc;
+
+ Watch_V_Size = .55;
+
+  if (Watch_Angle >= 370)
+    Watch_Angle_Inc = -.2;
+  else if (Watch_Angle <= 350)
+    Watch_Angle_Inc = .2;
+  Watch_Angle += Watch_Angle_Inc;
+
+  // Watch_Angle = 5;
+
+  // wraps automatically
+  Watch_H_Location  += 3;
+  // Watch_H_Location = 0;
+
+  Fade_V_Location = 50;
 
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
@@ -304,40 +343,47 @@ void Video_Sculpture::Mixer(void)
 
   // this is really slow on the NUC!!!
   // but only need to update the time once a minute or so
-  // adds the hands to the watch   
+  // adds the hands to the watch
   Build_Watch();
   // check tduration of Build
   // Watch_With_Both = VP2x.VideoProc_FU.clone();
 
-
-  // works 
+  // works
   // Shift_Image_Vertical_U(Alpha_Fade_Shifted_FU, 50, VP2x.Ones_Float_Mat_U);
   // seems faster
   // set the location of the watch vertical fader
-  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, 40,  VP2x.Ones_Float_Mat_U);
+  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, Fade_V_Location, VP2x.Ones_Float_Mat_U);
 
   // multiply the 2 alphas the watch alpha and the fade alpha
-  multiply(Alpha_Fade_Shifted_FU,  VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
+  multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
   // generate the final watch matted image
   multiply(Watch_With_Both, Alpha_Fade_Shifted_FU, Watch_With_Both_Faded_U);
-  
 
   // this shrinks the watch and its alpha , but puts them back in a full size Mat
   // Shrink_Object(Watch_With_Both, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
-  Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
+  Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);
+
+
+
+  //  useful for isolating the scaling problem
+  // UMat Mat_Temp;
+  // resize(VideoSum_Comp_FU, Mat_Temp, Size(), .25, .25, INTER_NEAREST);
+  // resize(Mat_Temp, Mat_Temp, Size(), 4, 4, INTER_NEAREST);
+  // blur(Mat_Temp, Mat_Temp, Size(6, 6));
+  // resize(Mat_Temp, Mat_Temp, Size(), 4, 4, INTER_NEAREST);
+
+
+  VideoSum_Comp_FU.convertTo(DisplayTemp, CV_8U, 1);
+  // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);
+  imshow("17", DisplayTemp);
 
   // this rotates the watch and its alpha
-  rotate2(VideoSum_Comp_FU, VideoSum_FUE, Rotating_Angle);
-  rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Rotating_Angle);
+  rotate2(VideoSum_Comp_FU, VideoSum_FUE, Watch_Angle);
+  rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Watch_Angle);
 
-    // this moves the watch and its alpha horizontally and vertically
-  Shift_Image_Horizontal_Vertical_U2(VideoSum_FUE, Watch_Shifted_FU, X_Position, 100, VP2x.Zeros_Float_Mat_U);
-  Shift_Image_Horizontal_Vertical_U2(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, X_Position, 100, VP2x.Zeros_Float_Mat_U);
-
-
-  Watch_Alpha_Shifted_FU.convertTo(DisplayTemp, CV_8U, 255);
-  // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);  
-  imshow("17", DisplayTemp);
+  // this moves the watch and its alpha horizontally and vertically (works out of frame also)
+  Shift_Image_Horizontal_Vertical_U3(VideoSum_FUE, Watch_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
+  Shift_Image_Horizontal_Vertical_U3(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
 
   // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges
   blur(Watch_Shifted_FU, VideoSum_FUE, Size(3, 3));
@@ -345,16 +391,13 @@ void Video_Sculpture::Mixer(void)
   blur(Watch_Alpha_Shifted_FU, Alpha_Rotated_U, Size(3, 3));
   blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
 
-//  create the inverted alpha for the background
+  //  create the inverted alpha for the background
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
 
-//  soft key the final watch over the waves
+  //  soft key the final watch over the waves
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 }
-
-
-
 
 void Video_Sculpture::Display(void)
 {
@@ -362,7 +405,7 @@ void Video_Sculpture::Display(void)
   VideoSum_FU.convertTo(VideoSum_U, CV_8UC3);     // convert a UMAt float to a UMat int
   VideoSum_U.convertTo(VideoSumDisplay, CV_8UC3); // convert a UMAt int to a Mat int
 
-  Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(VideoSumDisplay);
+  //  Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(VideoSumDisplay);
 
   namedWindow("Sum", WINDOW_AUTOSIZE); // Create a window for display.
   imshow("Sum", VideoSumDisplay);      // Show our image inside it.
@@ -384,14 +427,11 @@ void Video_Sculpture::Display(void)
   }
 }
 
-
 void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 {
   Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
   Map_Subsampled_To_Sculpture();
 }
-
-
 
 // this was the fastet way that I measured
 void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)

@@ -152,14 +152,6 @@ public:
 
   int local_oop;
 
-  float Rotating_Angle;
-  float Rotating_Angle_inc ;
-
-  int X_Position;
-
-  float shrink_val;
-  float shrink_val_inc;
-
   Prog_Durations time_test;
 
 
@@ -170,6 +162,17 @@ public:
   int64_t Current_Hour;
   int64_t Current_Minute;
   int64_t Current_Second;
+
+  float     Watch_H_Size;
+  float     Watch_V_Size;  
+  float     Watch_Angle;      
+  uint64_t  Watch_H_Location;
+  float     Watch_V_Location;  
+  uint64_t  Fade_V_Location;   
+
+  float     Watch_Angle_Inc;
+  float     Watch_H_Size_Inc;
+  float     Watch_V_Size_Inc;  
 
 };
 

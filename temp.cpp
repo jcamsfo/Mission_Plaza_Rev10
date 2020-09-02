@@ -236,8 +236,6 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
 
 
 
-
-
 // rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
 void Video_Player_With_Processing::StillSetupRev2(string File_Name, string NameX)
 {
@@ -264,13 +262,14 @@ void Video_Player_With_Processing::StillSetupRev2(string File_Name, string NameX
   Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);  
 
 
+
   // split to BGR and Alpha
   split(VideoMainAlpha, VideoChannels4);
 
   // merge the 1st 3 channels of the 4 channel input
   VideoChannels4[0].copyTo(VideoChannels3[0]);
   VideoChannels4[1].copyTo(VideoChannels3[1]);
-  VideoChannels4[2].copyTo(VideoChannels3[2]);
+  VideoChannels4[2].copyTo(VideoChannels3[2]);cc
   merge(VideoChannels3, 3, VideoMain);
 
   // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
