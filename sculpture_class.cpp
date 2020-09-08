@@ -237,18 +237,37 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
 {
 
   int Font_Type = FONT_HERSHEY_DUPLEX;
-  text_window.setTo(Scalar(100, 100, 20));
+  // text_window.setTo(Scalar(100, 100, 20));
+  // Scalar Onnn = Scalar(200, 200, 200);
+  // Scalar Offf = Scalar(100, 100, 120);
 
-  Scalar Onnn = Scalar(200, 200, 200);
-  Scalar Offf = Scalar(100, 100, 120);
+    text_window.setTo(Scalar(20, 20, 20));
+  Scalar Onnn = Scalar(140, 140, 140);
+  Scalar Offf = Scalar(60, 60, 60);
 
   Scalar Water_Color = (Select_Controls == 0) ? Onnn : Offf;
   Scalar Watch_Color = (Select_Controls == 1) ? Onnn : Offf;
 
-  putText(text_window, format("Water Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma), Point(10, 20), Font_Type, .4, Water_Color, 1);
+  putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
 
-  putText(text_window, format("Watch Gain %.1f  C Gain %.1f  Black %.1f  Gamma %.1f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 1);
-  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d ", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto), Point(10, 70), Font_Type, .4, Watch_Color, 1);
+  putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0,LINE_AA);
+  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d ", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
+
+
+
+
+
+
+
+ 	// Scalar  	color,
+	// 	int  	thickness = 1,
+	// 	int  	lineType = LINE_8,
+	// 	bool  	bottomLeftOrigin = false 
+	// ) 	
+
+  // LINE_AA
+
+
 
   namedWindow(Window_Name);
   // moveWindow(Window_Name, x,y);
@@ -633,57 +652,71 @@ void Video_Sculpture::Display(void)
   }
 }
 
+
+
+
 void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 {
-  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
+    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6();
+    // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
+
   Map_Subsampled_To_Sculpture();
 }
 
+
+
+
+
+
+
+
 // this was the fastet way that I measured
-void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void)
 {
-  float r, g, b, w, Sub_Val;
+  time_test.Start_Delay_Timer();
   int xx_arr, yy_arr, yy, xx;
   int inc = 0;
-
-  time_test.Start_Delay_Timer();
+  uint16_t rz, gz, bz, wz, Sub_Valz;
 
   Pixel_Type_F Pixel_Vec;
 
   VideoSum_FU.copyTo(VideoSum_F);
 
-  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
+  int i=0;
+  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // 
   {
-    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
+    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // 
     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
     {
       xx = Sample_Points_Map_V[yy_arr][xx_arr];
       Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
-      r = Pixel_Vec[2];
-      g = Pixel_Vec[1];
-      b = Pixel_Vec[0];
 
-      if ((r <= g) & (r <= b))
-        Sub_Val = r;
-      else if ((g <= r) & (g <= b))
-        Sub_Val = g;
-      else
-        Sub_Val = b;
+      rz = ( Pixel_Vec[2]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[2] );
+      gz = ( Pixel_Vec[1]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[1] );
+      bz = ( Pixel_Vec[0]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[0] );
 
-      *(Sampled_Buffer_RGBW_AF + inc++) = r - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = g - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = b - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = Sub_Val;
+
+      // if ((rz <= gz) & (rz <= bz))
+      //   Sub_Valz = rz;
+      // else if ((gz <= rz) & (gz <= bz))
+      //   Sub_Valz = gz;
+      // else
+      //   Sub_Valz = bz;
+
+
+       Sub_Valz = std::min({rz, gz, bz});
+
+      Sampled_Buffer_RGBW[i++] =  rz -  Sub_Valz;
+      Sampled_Buffer_RGBW[i++] =  gz -  Sub_Valz;
+      Sampled_Buffer_RGBW[i++] =  bz -  Sub_Valz;       
+      Sampled_Buffer_RGBW[i++] =        Sub_Valz;              
     }
   }
-
   time_test.End_Delay_Timer();
-
-  for (int i = 0; i < Sculpture_Size_RGBW; i++)
-    Sampled_Buffer_RGBW[i] = 256 * Sampled_Buffer_RGBW_AF[i];
-
   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
+
+
 
 // formerly known as Panel_Mapper
 // maps the image sub samples to the panel using the panel map
@@ -780,6 +813,65 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
   }
   time_test.End_Delay_Timer();
   cout << " lower2 " << time_test.time_delay << endl;
+}
+
+
+
+
+// this was the fastet way that I measured
+// HAD OVERFLOW PROBLEM !!!!!!!!!!!!!!!!!!!!!!!!1
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)
+{
+  float r, g, b, w, Sub_Val;
+  int xx_arr, yy_arr, yy, xx;
+  int inc = 0;
+
+  time_test.Start_Delay_Timer();
+
+  Pixel_Type_F Pixel_Vec;
+
+  VideoSum_FU.copyTo(VideoSum_F);
+
+  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
+  {
+    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
+    for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+    {
+      xx = Sample_Points_Map_V[yy_arr][xx_arr];
+      Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
+      r = Pixel_Vec[2];
+      g = Pixel_Vec[1];
+      b = Pixel_Vec[0];
+
+
+       if(g < 0)cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL " << g  << endl ;      
+       // if (b > 100) cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX BBBBBBBBBBBB "  << (int)b << endl ;
+
+
+
+      if ((r <= g) & (r <= b))
+        Sub_Val = r;
+      else if ((g <= r) & (g <= b))
+        Sub_Val = g;
+      else
+        Sub_Val = b;
+
+      *(Sampled_Buffer_RGBW_AF + inc++) = r - Sub_Val;
+      *(Sampled_Buffer_RGBW_AF + inc++) = g - Sub_Val;
+      *(Sampled_Buffer_RGBW_AF + inc++) = b - Sub_Val;
+      *(Sampled_Buffer_RGBW_AF + inc++) = Sub_Val;
+
+     if(Sub_Val < 0)cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL 555555555555555555" << endl ;
+
+    }
+  }
+
+  for (int i = 0; i < Sculpture_Size_RGBW; i++)
+    Sampled_Buffer_RGBW[i] = (uint16_t)( 256 * Sampled_Buffer_RGBW_AF[i] );
+
+  time_test.End_Delay_Timer();    
+
+  cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
 
 // void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_V_Float(cv::Mat src, float *Buffer, const vector<vector<int>> &SP)

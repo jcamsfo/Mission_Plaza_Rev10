@@ -50,6 +50,10 @@ public:
   // Grab the pixels from the image and store them in
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void);
 
+
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void);
+
+
   void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int xx);
 
   void Map_Subsampled_To_Sculpture(void);
