@@ -1,5 +1,126 @@
 
 
+      if (kp == ',')
+      {
+        VP1x.Gain -= .05;
+        if (VP1x.Gain < 0)
+          VP1x.Gain = 0;
+      }
+      else if (kp == '.')
+      {
+        VP1x.Gain += .05;
+        if (VP1x.Gain > 2)
+          VP1x.Gain = 2;
+      }
+
+      else if (kp == 'k')
+      {
+        VP1x.Color_Gain -= .05;
+        if (VP1x.Color_Gain < 0)
+          VP1x.Color_Gain = 0;
+      }
+      else if (kp == 'l')
+      {
+        VP1x.Color_Gain += .05;
+        if (VP1x.Color_Gain > 2)
+          VP1x.Color_Gain = 2;
+      }
+
+      else if (kp == ';')
+      {
+        VP1x.Image_Gamma -= .05;
+        if (VP1x.Image_Gamma < 0)
+          VP1x.Image_Gamma = 0;
+      }
+      else if (kp == 39)
+      {
+        VP1x.Image_Gamma += .05;
+        if (VP1x.Image_Gamma > 1)
+          VP1x.Image_Gamma = 1;
+      }
+
+
+      else if (kp == '[')
+      {
+        VP1x.Black_Level -= .05;
+        if (VP1x.Black_Level < -1)
+          VP1x.Black_Level = -1;        
+      }
+      else if (kp == ']') 
+      {
+        VP1x.Black_Level += .05;
+        if (VP1x.Black_Level > 1)
+          VP1x.Black_Level = 1;     
+      }
+  
+
+
+
+
+    else if (Select_Controls == 1)
+    {
+
+      if (kp == ',')
+      {
+        VP2x.Gain -= .05;
+        if (VP2x.Gain < 0)
+          VP2x.Gain = 0;
+        VP2x.Process();          
+      }
+      else if (kp == '.')
+      {
+        VP2x.Gain += .05;
+        if (VP2x.Gain > 2)
+          VP2x.Gain = 2;
+        VP2x.Process();          
+      }
+
+      else if (kp == 'k')
+      {
+        VP2x.Color_Gain -= .05;
+        if (VP2x.Color_Gain < 0)
+          VP2x.Color_Gain = 0;
+        VP2x.Process();          
+      }
+      else if (kp == 'l')
+      {
+        VP2x.Color_Gain += .05;
+        if (VP2x.Color_Gain > 2)
+          VP2x.Color_Gain = 2;
+        VP2x.Process();          
+      }
+
+      else if (kp == ';')
+      {
+        VP2x.Image_Gamma -= .05;
+        if (VP2x.Image_Gamma < 0)
+          VP2x.Image_Gamma = 0;
+        VP2x.Process();          
+      }
+      else if (kp == 39)
+      {
+        VP2x.Image_Gamma += .05;
+        if (VP2x.Image_Gamma > 1)
+          VP2x.Image_Gamma = 1;
+        VP2x.Process();          
+      }
+
+      else if (kp == '[')
+      {
+        VP2x.Black_Level -= .05;
+        if (VP2x.Black_Level < -1)
+          VP2x.Black_Level = -1;        
+        VP2x.Process();          
+      }
+      else if (kp == ']') 
+        VP2x.Black_Level += .05;
+        if (VP2x.Black_Level > 1)
+          VP2x.Black_Level = 1;     
+        VP2x.Process();          
+
+
+
+
 #include <opencv2/core.hpp>
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/imgproc.hpp>

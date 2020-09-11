@@ -90,6 +90,8 @@ constexpr int Sculpture_Size_Pixels = 3600;         //  4 * 16 bit words per pix
 constexpr int Sculpture_Size_RGBW = 14400;              //  16 bit   4 * 3600
 constexpr int Sculpture_Size_RGBW_Bytes = 28800;        //  16 bit   8 * 3600
 
+constexpr int Sculpture_Size_RGB = 10800;              //  16 bit   4 * 3600
+
 // no gaps for headers etc in this work
 constexpr int Buffer_W_Gaps_Size_RGBW = 14400;              //  16 bit   4 * 3600
 constexpr int Buffer_W_Gaps_Size_RGBW_Bytes = 28800;        //  16 bit   8 * 3600

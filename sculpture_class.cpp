@@ -25,6 +25,8 @@ typedef Vec<uint8_t, 3> Pixel_Type_8b;
 
 typedef Vec<uint16_t, 3> Pixel_Type;
 
+typedef Vec<uint16_t, 3> Pixel_Type_16;
+
 typedef Vec<float, 3> Pixel_Type_F;
 
 void alphaBlend(Mat &foreground, Mat &background, Mat &alpha, Mat &outImage)
@@ -67,12 +69,33 @@ inline void Overlay(UMat &Frgnd, UMat &Bkgnd, UMat &Alpha, UMat &Result)
   addWeighted(Temp, 1, Frgnd, 1, 0, Result);
 }
 
+// Define a pixel
+typedef Point3_<uint8_t> Pixel;
+typedef Point3_<float> Pixel3F;
+
+void BW_Convert(Pixel3F &pixel)
+{
+  pixel.x = 256 * ((pixel.x >= 255) ? 255 : (pixel.x <= 0) ? 0 : pixel.x);
+  pixel.y = 256 * ((pixel.y >= 255) ? 255 : (pixel.y <= 0) ? 0 : pixel.y);
+  pixel.z = 256 * ((pixel.z >= 255) ? 255 : (pixel.z <= 0) ? 0 : pixel.z);
+}
+
+struct Operator
+{
+  void operator()(Pixel3F &pixel, const int *position) const
+  {
+    BW_Convert(pixel);
+  }
+};
+
 Video_Sculpture::Video_Sculpture(void)
 {
 
   Sampled_Buffer_RGBW = new uint16_t[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Sampled_Buffer_RGBW_AF = new float[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
   Samples_Mapped_To_Sculpture = new uint16_t[Buffer_W_Gaps_Size_RGBW_Extra];
+
+  Sampled_Buffer_RGB = new uchar[Sculpture_Size_RGB]; //  16 bit   4 * 13116  52464
 
   // pictures for the tower
   // VP1x.setup("../../Movies/TSB3X.mov", "0");
@@ -107,9 +130,13 @@ Video_Sculpture::Video_Sculpture(void)
 
   text_window.create(200, 600, CV_8UC3);
 
+  Subsampled_Display_Small.create(SAMPLE_ROWS, SAMPLE_COLS, CV_8UC3);
+
   Key_Press = -1;
 
   display_on_X = true;
+
+  Video_On = false;
 
   local_oop = 0;
   Watch_Angle = 360;
@@ -131,7 +158,7 @@ Video_Sculpture::Video_Sculpture(void)
 
   Select_Controls = 0;
   Select_Auto = false;
-
+  Watch_On = true ;
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -241,33 +268,25 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   // Scalar Onnn = Scalar(200, 200, 200);
   // Scalar Offf = Scalar(100, 100, 120);
 
-    text_window.setTo(Scalar(20, 20, 20));
+  text_window.setTo(Scalar(20, 20, 20));
   Scalar Onnn = Scalar(140, 140, 140);
   Scalar Offf = Scalar(60, 60, 60);
 
   Scalar Water_Color = (Select_Controls == 0) ? Onnn : Offf;
   Scalar Watch_Color = (Select_Controls == 1) ? Onnn : Offf;
 
-  putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
+  putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  Video On &d", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma, Video_On), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
 
-  putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0,LINE_AA);
-  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d ", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
+  putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0, LINE_AA);
+  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
 
-
-
-
-
-
-
- 	// Scalar  	color,
-	// 	int  	thickness = 1,
-	// 	int  	lineType = LINE_8,
-	// 	bool  	bottomLeftOrigin = false 
-	// ) 	
+  // Scalar  	color,
+  // 	int  	thickness = 1,
+  // 	int  	lineType = LINE_8,
+  // 	bool  	bottomLeftOrigin = false
+  // )
 
   // LINE_AA
-
-
 
   namedWindow(Window_Name);
   // moveWindow(Window_Name, x,y);
@@ -278,7 +297,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 {
   static unsigned char last_kp, kp_2ago;
   static string file_name;
-  static int New_Watch_Number, New_Water_Number;
+  static int New_Watch_Number, New_Water_Number, New_Image_Number;
 
   if (kp != 255)
   {
@@ -298,6 +317,11 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     else if (kp == 'd')
     {
       display_on_X = !display_on_X;
+    }
+
+    else if (kp == 'q')
+    {
+      Video_On = !Video_On;
     }
 
     else if ((kp_2ago == 'w') & isdigit(last_kp) & isdigit(kp))
@@ -324,6 +348,145 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
            << endl;
     }
 
+    else if ((kp_2ago == 'p') & isdigit(last_kp) & isdigit(kp))
+    {
+      New_Image_Number = kp - '0' + 10 * (last_kp - '0');
+      file_name = "../../Movies/";
+      if ((New_Image_Number >= 0) && (New_Image_Number <= 39))
+      {
+        if (New_Image_Number == 0)
+          file_name += "black-MPZ.mp4";
+        else if (New_Image_Number == 1)
+          file_name += "rgbwycmw-MPZ.mp4";
+        else if (New_Image_Number == 2)
+          file_name += "rainbow.mp4";
+        else if (New_Image_Number == 3)
+          file_name += "waves-MPZ.mp4";
+        else if (New_Image_Number == 4)
+          file_name += "comp1_264.mov";                    
+        else if (New_Image_Number == 5)
+          file_name += "comp4_264.mov";
+        else if (New_Image_Number == 4)
+          file_name += "comp5_264.mov";                    
+        else if (New_Image_Number == 5)
+          file_name += "comp6_264.mov";     
+
+        else if (New_Image_Number == 6)
+          file_name += "stairs.mov";      
+
+        else if (New_Image_Number == 7)
+          file_name += "swim.mp4";      
+
+        else if (New_Image_Number == 8)
+          file_name += "waves2.mp4";      
+
+        else if (New_Image_Number == 9)
+          file_name += "run.mp4";      
+
+        else if (New_Image_Number == 10)
+          file_name += "w40.mp4";      
+
+        else if (New_Image_Number == 11)
+          file_name += "w60.mp4";      
+
+        else if (New_Image_Number == 12)
+          file_name += "w80.mp4";      
+
+        else if (New_Image_Number == 13)
+          file_name += "w80bw.mp4";      
+
+        else if (New_Image_Number == 14)
+          file_name += "w100.mp4";      
+
+        else if (New_Image_Number == 15)
+          file_name += "water40BW_obj50.mov";      
+
+        else if (New_Image_Number == 16)
+          file_name += "water40color_obj30.mov";      
+
+        else if (New_Image_Number == 17)
+          file_name += "water40color_obj100.mov";      
+
+        else if (New_Image_Number == 18)
+          file_name += "water60BW_obj50.mov";      
+
+
+        else if (New_Image_Number == 19)
+          file_name += "water60color_obj30.mov";      
+
+        else if (New_Image_Number == 20)
+          file_name += "water60color_obj100.mov";        
+
+        else if (New_Image_Number == 21)
+          file_name += "water80BW_obj50.mov";           
+
+        else if (New_Image_Number == 22)
+          file_name += "water80color_obj30.mov";          
+
+        else if (New_Image_Number == 23)
+          file_name += "water80color_obj100.mov";           
+
+        else if (New_Image_Number == 24)
+          file_name += "water100BW_obj50.mov";          
+
+        else if (New_Image_Number == 25)
+          file_name += "water100color_obj30.mov";        
+
+        else if (New_Image_Number == 26)
+          file_name += "water100color_obj100.mov";           
+
+        else if (New_Image_Number == 27)
+          file_name += "obj_in_water2.mp4";          
+
+        else if (New_Image_Number == 28)
+          file_name += "victorian_in_water.mov";      
+
+        else if (New_Image_Number == 29)
+          file_name += "vic_slow_rotation.mov";   
+
+        else if (New_Image_Number == 30)
+          file_name += "vic_fast_rotation.mov"; 
+
+        else if (New_Image_Number == 31)
+          file_name += "clock_spinning.mov";           
+
+                  else if (New_Image_Number == 32)
+          file_name += "clk_spinning_in_wat.mov"; 
+
+                  else if (New_Image_Number == 33)
+          file_name += "clock.mov"; 
+
+                  else if (New_Image_Number == 34)
+          file_name += "clock_in_water.mov"; 
+
+                  else if (New_Image_Number == 35)
+          file_name += "cwfm.mov"; 
+
+                  else if (New_Image_Number == 36)
+          file_name += "cwfr.mov"; 
+
+                  else if (New_Image_Number == 37)
+          file_name += "big_watch.mov"; 
+
+                  else if (New_Image_Number == 38)
+          file_name += "wfm.mov"; 
+
+                  else if (New_Image_Number == 39)
+          file_name += "wpm.mov";           
+
+
+
+        VP1x.VideoSetup(file_name, "0");
+
+
+      }
+
+      cout << endl
+           << endl
+           << "  file_name  " << file_name << endl
+           << endl;
+    }
+
     // else if(  (kp_2ago == 's') & isdigit(last_kp)   & isdigit(c) )
     // {
 
@@ -333,73 +496,124 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
     if (Select_Controls == 0)
     {
-      if ((kp == ',') && (VP1x.Gain > .05))
+
+      if (kp == ',')
+      {
         VP1x.Gain -= .05;
-      else if ((kp == '.') && (VP1x.Gain < 1.95))
+        if (VP1x.Gain < 0)
+          VP1x.Gain = 0;
+      }
+      else if (kp == '.')
+      {
         VP1x.Gain += .05;
+        if (VP1x.Gain > 2)
+          VP1x.Gain = 2;
+      }
 
-      if ((kp == 'k') && (VP1x.Color_Gain > .05))
+      else if (kp == 'k')
+      {
         VP1x.Color_Gain -= .05;
-      else if ((kp == 'l') && (VP1x.Color_Gain <= 1.95))
+        if (VP1x.Color_Gain < 0)
+          VP1x.Color_Gain = 0;
+      }
+      else if (kp == 'l')
+      {
         VP1x.Color_Gain += .05;
+        if (VP1x.Color_Gain > 2)
+          VP1x.Color_Gain = 2;
+      }
 
-      if ((kp == ';') && (VP1x.Image_Gamma > .05))
+      else if (kp == ';')
+      {
         VP1x.Image_Gamma -= .05;
-      else if ((kp == 39) && (VP1x.Image_Gamma <= .95))
+        if (VP1x.Image_Gamma < 0)
+          VP1x.Image_Gamma = 0;
+      }
+      else if (kp == 39)
+      {
         VP1x.Image_Gamma += .05;
+        if (VP1x.Image_Gamma > 1)
+          VP1x.Image_Gamma = 1;
+      }
 
-      if ((kp == '[') && (VP1x.Black_Level >= -.95))
+      else if (kp == '[')
+      {
         VP1x.Black_Level -= .05;
-      else if ((kp == ']') && (VP1x.Black_Level <= .95))
+        if (VP1x.Black_Level < -1)
+          VP1x.Black_Level = -1;
+      }
+      else if (kp == ']')
+      {
         VP1x.Black_Level += .05;
+        if (VP1x.Black_Level > 1)
+          VP1x.Black_Level = 1;
+      }
     }
+
     else if (Select_Controls == 1)
     {
-      if ((kp == ',') && (VP2x.Gain > .05))
+      if (kp == ',')
       {
         VP2x.Gain -= .05;
+        if (VP2x.Gain < 0)
+          VP2x.Gain = 0;
         VP2x.Process();
       }
-      else if ((kp == '.') && (VP2x.Gain < 1.95))
+      else if (kp == '.')
       {
         VP2x.Gain += .05;
+        if (VP2x.Gain > 2)
+          VP2x.Gain = 2;
         VP2x.Process();
       }
 
-      if ((kp == 'k') && (VP2x.Color_Gain > .05))
+      else if (kp == 'k')
       {
         VP2x.Color_Gain -= .05;
+        if (VP2x.Color_Gain < 0)
+          VP2x.Color_Gain = 0;
         VP2x.Process();
       }
-      else if ((kp == 'l') && (VP2x.Color_Gain <= 1.95))
+      else if (kp == 'l')
       {
         VP2x.Color_Gain += .05;
+        if (VP2x.Color_Gain > 2)
+          VP2x.Color_Gain = 2;
         VP2x.Process();
       }
 
-      if ((kp == ';') && (VP2x.Image_Gamma > .05))
+      else if (kp == ';')
+      {
         VP2x.Image_Gamma -= .05;
-      else if ((kp == 39) && (VP2x.Image_Gamma <= .95))
+        if (VP2x.Image_Gamma < 0)
+          VP2x.Image_Gamma = 0;
+        VP2x.Process();
+      }
+      else if (kp == 39)
       {
         VP2x.Image_Gamma += .05;
+        if (VP2x.Image_Gamma > 1)
+          VP2x.Image_Gamma = 1;
         VP2x.Process();
       }
 
-      if ((kp == '[') && (VP2x.Black_Level >= -.95))
+      else if (kp == '[')
       {
-
         VP2x.Black_Level -= .05;
+        if (VP2x.Black_Level < -1)
+          VP2x.Black_Level = -1;
         VP2x.Process();
       }
-      else if ((kp == ']') && (VP2x.Black_Level <= .95))
+      else if (kp == ']')
       {
         VP2x.Black_Level += .05;
+        if (VP2x.Black_Level > 1)
+          VP2x.Black_Level = 1;
         VP2x.Process();
       }
 
       if ((kp == 'g') && (Watch_H_Location_Inc >= 1))
       {
-
         Watch_H_Location_Inc--;
       }
       else if ((kp == 'h') && (Watch_H_Location_Inc <= 5))
@@ -426,10 +640,17 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         Watch_H_Size += .05;
       }
 
-      if (kp == 'y')
+      else if (kp == 'y')
       {
         Select_Auto = !Select_Auto;
       }
+
+      else if (kp == 'z')
+      {
+        Watch_On = !Watch_On;
+      }
+
+
     }
 
     cout << " key  " << (uint)kp << " last key  " << (uint)last_kp << endl;
@@ -542,7 +763,8 @@ void Video_Sculpture::Mixer(void)
 
   float Watch_H_Size_Auto = V_Percent * (Watch_H_Size_End - Watch_H_Size_Begin) + Watch_H_Size_Begin;
 
-   if(Select_Auto) Watch_H_Size =  Watch_H_Size_Auto;
+  if (Select_Auto)
+    Watch_H_Size = Watch_H_Size_Auto;
 
   Watch_V_Size = Watch_H_Size;
 
@@ -620,6 +842,9 @@ void Video_Sculpture::Mixer(void)
   //  soft key the final watch over the waves
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
+
+  if(!Watch_On)VideoSum_FU = VP1x.VideoProc_FU.clone();
+
 }
 
 void Video_Sculpture::Display(void)
@@ -640,6 +865,7 @@ void Video_Sculpture::Display(void)
     imshow("1", VP1x.VideoDisplay);
     imshow("2", VP2x.VideoDisplay);
     imshow("3", VP3x.VideoDisplay);
+    imshow("ouput", Subsampled_Display_Large);
   }
   else
   {
@@ -649,74 +875,167 @@ void Video_Sculpture::Display(void)
       destroyWindow("2");
     if (cv::getWindowProperty("3", WND_PROP_AUTOSIZE) != -1)
       destroyWindow("3");
+    if (cv::getWindowProperty("output", WND_PROP_AUTOSIZE) != -1)
+      destroyWindow("output");
   }
 }
 
-
-
-
 void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 {
-    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6();
-    // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
+  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8();
+  // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
 
   Map_Subsampled_To_Sculpture();
+
+  Generate_Subsampled_Image_For_Test();
 }
 
+// this was the fastet way that I measured
+// overflows
+// void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void)
+// {
+//   time_test.Start_Delay_Timer();
+//   int xx_arr, yy_arr, yy, xx;
+//   int inc = 0;
+//   uint16_t rz, gz, bz, wz, Sub_Valz;
 
+//   Pixel_Type_F Pixel_Vec;
 
+//   VideoSum_FU.copyTo(VideoSum_F);
 
+//   // VideoSum_F = cv::Scalar(0,0,0)
 
+//   int i = 0;
+//   for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+//   {
+//     yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+//     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+//     {
+//       xx = Sample_Points_Map_V[yy_arr][xx_arr];
+//       Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
 
+//       rz = (Pixel_Vec[2] < 0) ? 0 : (uint16_t)(256 * Pixel_Vec[2]);
+//       gz = (Pixel_Vec[1] < 0) ? 0 : (uint16_t)(256 * Pixel_Vec[1]);
+//       bz = (Pixel_Vec[0] < 0) ? 0 : (uint16_t)(256 * Pixel_Vec[0]);
 
+//       // if ((rz <= gz) & (rz <= bz))
+//       //   Sub_Valz = rz;
+//       // else if ((gz <= rz) & (gz <= bz))
+//       //   Sub_Valz = gz;
+//       // else
+//       //   Sub_Valz = bz;
+
+//       Sub_Valz = std::min({rz, gz, bz});
+
+//       Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = Sub_Valz;
+//     }
+//   }
+//   time_test.End_Delay_Timer();
+//   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
+// }
 
 // this was the fastet way that I measured
-void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void)
+// slower than the conversion U16C3 in Rev8
+// void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev7(void)
+// {
+//   time_test.Start_Delay_Timer();
+//   int xx_arr, yy_arr, yy, xx;
+//   int inc = 0;
+//   uint16_t rz, gz, bz, wz, Sub_Valz;
+
+//   Pixel_Type_F Pixel_Vec;
+
+//   VideoSum_FU.copyTo(VideoSum_F);
+//   VideoSum_F.forEach<Pixel3F>(Operator());
+
+//   int i = 0;
+//   for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+//   {
+//     yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+//     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+//     {
+//       xx = Sample_Points_Map_V[yy_arr][xx_arr];
+//       Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
+
+//       rz = Pixel_Vec[2];
+//       gz = Pixel_Vec[1];
+//       bz = Pixel_Vec[0];
+
+//       Sub_Valz = std::min({rz, gz, bz});
+
+//       Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
+//       Sampled_Buffer_RGBW[i++] = Sub_Valz;
+//     }
+//   }
+
+//   time_test.End_Delay_Timer();
+//   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
+// }
+
+// this was the fastet way that I measured
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void)
 {
   time_test.Start_Delay_Timer();
   int xx_arr, yy_arr, yy, xx;
   int inc = 0;
   uint16_t rz, gz, bz, wz, Sub_Valz;
+  int i;
 
   Pixel_Type_F Pixel_Vec;
 
   VideoSum_FU.copyTo(VideoSum_F);
 
-  int i=0;
-  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // 
+  VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256); // this does the clipping for you !!!
+
+  i = 0;
+
+  if (Video_On)
   {
-    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // 
-    for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
     {
-      xx = Sample_Points_Map_V[yy_arr][xx_arr];
-      Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        xx = Sample_Points_Map_V[yy_arr][xx_arr];
+        Pixel_Vec = VideoSum_16.at<Pixel_Type_16>(yy, xx);
 
-      rz = ( Pixel_Vec[2]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[2] );
-      gz = ( Pixel_Vec[1]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[1] );
-      bz = ( Pixel_Vec[0]  < 0) ? 0 : (uint16_t)( 256 * Pixel_Vec[0] );
+        rz = Pixel_Vec[2];
+        gz = Pixel_Vec[1];
+        bz = Pixel_Vec[0];
 
+        Sub_Valz = std::min({rz, gz, bz});
 
-      // if ((rz <= gz) & (rz <= bz))
-      //   Sub_Valz = rz;
-      // else if ((gz <= rz) & (gz <= bz))
-      //   Sub_Valz = gz;
-      // else
-      //   Sub_Valz = bz;
-
-
-       Sub_Valz = std::min({rz, gz, bz});
-
-      Sampled_Buffer_RGBW[i++] =  rz -  Sub_Valz;
-      Sampled_Buffer_RGBW[i++] =  gz -  Sub_Valz;
-      Sampled_Buffer_RGBW[i++] =  bz -  Sub_Valz;       
-      Sampled_Buffer_RGBW[i++] =        Sub_Valz;              
+        Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = Sub_Valz;
+      }
     }
   }
+
+  else
+  {
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+    {
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+      }
+    }
+  }
+
   time_test.End_Delay_Timer();
   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
-
-
 
 // formerly known as Panel_Mapper
 // maps the image sub samples to the panel using the panel map
@@ -732,14 +1051,40 @@ void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
 }
 
 // just started
-void Video_Sculpture::Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment)
+void Video_Sculpture::Generate_Subsampled_Image_For_Test(void)
 {
-  Mat Display_Mat;
-  Pixel_Type a;
-  a[0] = 3;
-  Display_Mat.at<Pixel_Type>(0, 0) = a;
-  // Mat_Out.at<Pixel_Type>(yy, xx) = a;
+
+  static uchar r, g, b, w;
+  static int i, o;
+
+  int inc;
+  i = 0;
+  o = 0;
+
+  for (inc = 0; inc < 3600; inc++)
+  {
+    r = Sampled_Buffer_RGBW[i++] / 256;
+    g = Sampled_Buffer_RGBW[i++] / 256;
+    b = Sampled_Buffer_RGBW[i++] / 256;
+    w = Sampled_Buffer_RGBW[i++] / 256;
+
+    r = r + w;
+    g = g + w;
+    b = b + w;
+
+    Sampled_Buffer_RGB[o++] = b;
+    Sampled_Buffer_RGB[o++] = g;
+    Sampled_Buffer_RGB[o++] = r;
+  }
+
+  std::memcpy(Subsampled_Display_Small.data, Sampled_Buffer_RGB, 50 * 72 * 3 * sizeof(uchar));
+
+  // imshow("ouput", Subsampled_Display_Small);
+
+  resize(Subsampled_Display_Small, Subsampled_Display_Large, Size(), 5, 5, INTER_LINEAR);
 }
+
+//   resize(Watch_With_Both, VideoSum_Resized_FU, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
 
 // for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
 // {
@@ -815,64 +1160,59 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
   cout << " lower2 " << time_test.time_delay << endl;
 }
 
-
-
-
 // this was the fastet way that I measured
 // HAD OVERFLOW PROBLEM !!!!!!!!!!!!!!!!!!!!!!!!1
-void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)
-{
-  float r, g, b, w, Sub_Val;
-  int xx_arr, yy_arr, yy, xx;
-  int inc = 0;
+// void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void)
+// {
+//   float r, g, b, w, Sub_Val;
+//   int xx_arr, yy_arr, yy, xx;
+//   int inc = 0;
 
-  time_test.Start_Delay_Timer();
+//   time_test.Start_Delay_Timer();
 
-  Pixel_Type_F Pixel_Vec;
+//   Pixel_Type_F Pixel_Vec;
 
-  VideoSum_FU.copyTo(VideoSum_F);
+//   VideoSum_FU.copyTo(VideoSum_F);
 
-  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
-  {
-    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
-    for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
-    {
-      xx = Sample_Points_Map_V[yy_arr][xx_arr];
-      Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
-      r = Pixel_Vec[2];
-      g = Pixel_Vec[1];
-      b = Pixel_Vec[0];
+//   for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
+//   {
+//     yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
+//     for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+//     {
+//       xx = Sample_Points_Map_V[yy_arr][xx_arr];
+//       Pixel_Vec = VideoSum_F.at<Pixel_Type_F>(yy, xx);
+//       r = Pixel_Vec[2];
+//       g = Pixel_Vec[1];
+//       b = Pixel_Vec[0];
 
+//       if (g < 0)
+//         cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL " << g << endl;
+//       // if (b > 100) cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX BBBBBBBBBBBB "  << (int)b << endl ;
 
-       if(g < 0)cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL " << g  << endl ;      
-       // if (b > 100) cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX BBBBBBBBBBBB "  << (int)b << endl ;
+//       if ((r <= g) & (r <= b))
+//         Sub_Val = r;
+//       else if ((g <= r) & (g <= b))
+//         Sub_Val = g;
+//       else
+//         Sub_Val = b;
 
+//       *(Sampled_Buffer_RGBW_AF + inc++) = r - Sub_Val;
+//       *(Sampled_Buffer_RGBW_AF + inc++) = g - Sub_Val;
+//       *(Sampled_Buffer_RGBW_AF + inc++) = b - Sub_Val;
+//       *(Sampled_Buffer_RGBW_AF + inc++) = Sub_Val;
 
+//       if (Sub_Val < 0)
+//         cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL 555555555555555555" << endl;
+//     }
+//   }
 
-      if ((r <= g) & (r <= b))
-        Sub_Val = r;
-      else if ((g <= r) & (g <= b))
-        Sub_Val = g;
-      else
-        Sub_Val = b;
+//   for (int i = 0; i < Sculpture_Size_RGBW; i++)
+//     Sampled_Buffer_RGBW[i] = (uint16_t)(256 * Sampled_Buffer_RGBW_AF[i]);
 
-      *(Sampled_Buffer_RGBW_AF + inc++) = r - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = g - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = b - Sub_Val;
-      *(Sampled_Buffer_RGBW_AF + inc++) = Sub_Val;
+//   time_test.End_Delay_Timer();
 
-     if(Sub_Val < 0)cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX SUBVAL 555555555555555555" << endl ;
-
-    }
-  }
-
-  for (int i = 0; i < Sculpture_Size_RGBW; i++)
-    Sampled_Buffer_RGBW[i] = (uint16_t)( 256 * Sampled_Buffer_RGBW_AF[i] );
-
-  time_test.End_Delay_Timer();    
-
-  cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
-}
+//   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
+// }
 
 // void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_V_Float(cv::Mat src, float *Buffer, const vector<vector<int>> &SP)
 // {

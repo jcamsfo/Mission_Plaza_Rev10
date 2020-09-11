@@ -43,6 +43,7 @@ public:
 
   // these 2 used to Sample the image pixels using the the Sample_Points_Map
   uint16_t *Sampled_Buffer_RGBW;
+  uchar   *Sampled_Buffer_RGB;
   float *Sampled_Buffer_RGBW_AF;
 
   uint16_t *Samples_Mapped_To_Sculpture;
@@ -53,6 +54,9 @@ public:
 
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void);
 
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev7(void);  
+
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void);
 
   void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int xx);
 
@@ -64,7 +68,7 @@ public:
 
   void Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src);
 
-  void Generate_Subsampled_Image_For_Test(uint16_t *Buffer, bool RGBW_or_RGB, vector<vector<int>> X_Sample_Points, int Y_Start, int X_Increment, int X_Start, int Y_Increment);
+  void Generate_Subsampled_Image_For_Test(void);
 
   void Display_Text_Mat(char Window_Name[100], Mat &text_window, int x, int y);
 
@@ -150,6 +154,13 @@ public:
 
   Mat text_window;
 
+
+
+  Mat Subsampled_Display_Small, Subsampled_Display_Large, VideoSum_16;
+
+
+
+
   int loc_x;
   int loc_y;
 
@@ -181,11 +192,13 @@ public:
   float Watch_H_Size_Begin;
   float Watch_H_Size_End;
 
-  bool Select_Auto;
+  bool Select_Auto, Watch_On;
   char Key_Press;
   bool Stop_Program;
   int Select_Controls;
   void KeyBoardInput(unsigned char &kp, bool &Stop_Program);
+
+  bool Video_On;
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */
