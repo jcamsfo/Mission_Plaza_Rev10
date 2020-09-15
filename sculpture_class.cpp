@@ -146,7 +146,7 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_H_Size_Inc = .01;
   Watch_V_Size_Inc = .01;
   Watch_H_Location = 0;
-  Fade_V_Location = 0;
+  Fade_V_Location = 50;
 
   Watch_V_Location_Inc = .25;
 
@@ -354,6 +354,8 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     else if ((kp_2ago == 'w') & isdigit(last_kp) & isdigit(kp))
     {
 
+
+      Fade_V_Location = 50;
       D_Clock_Selected = false;
       New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
 
@@ -374,18 +376,28 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
       D_Clock_Selected = true;
       New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
-      if (New_Watch_Number <= 4)
+
+      Fade_V_Location = 50;
+
+      if (New_Watch_Number <= 5)
       {
         if (New_Watch_Number == 0)
           file_name = "../../Movies/dclock1.tif"; //   10s.tif" ;
         else if (New_Watch_Number == 1)
-          file_name = "../../Movies/1253.tif"; //   10s.tif" ;          
+          file_name = "../../Movies/1253.tif"; //   10s.tif" ;
         else if (New_Watch_Number == 2)
-          file_name = "../../Movies/125324.tif"; //   10s.tif" ;     
+          file_name = "../../Movies/125324.tif"; //   10s.tif" ;
         else if (New_Watch_Number == 3)
-          file_name = "../../Movies/1253xx.tif"; //   10s.tif" ;     
+          file_name = "../../Movies/1253xx.tif"; //   10s.tif" ;
         else if (New_Watch_Number == 4)
-          file_name = "../../Movies/125324z.tif"; //   10s.tif" ;               
+          file_name = "../../Movies/125324z.tif"; //   10s.tif" ;
+        else if (New_Watch_Number == 5)
+        {
+          file_name = "../../Movies/hourglass.tif"; //   10s.tif"
+                Fade_V_Location = 68;
+        }
+        VP2x.StillSetupWithAlpha(file_name, "1");
+        ;
         VP2x.StillSetupWithAlpha(file_name, "1");
       }
 
@@ -411,7 +423,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     {
       New_Image_Number = kp - '0' + 10 * (last_kp - '0');
       file_name = "../../Movies/";
-      if ((New_Image_Number >= 0) && (New_Image_Number <= 39))
+      if ((New_Image_Number >= 0) && (New_Image_Number <= 45))
       {
         if (New_Image_Number == 0)
           file_name += "black-MPZ.mp4";
@@ -531,6 +543,26 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
         else if (New_Image_Number == 39)
           file_name += "wpm.mov";
+
+        else if (New_Image_Number == 40)
+          file_name += "fire.mp4";
+
+        else if (New_Image_Number == 41)
+          file_name += "birds1.mp4";
+
+        else if (New_Image_Number == 42)
+          file_name += "birds2.mp4";
+
+        else if (New_Image_Number == 43)
+          file_name += "street.mp4";
+
+        else if (New_Image_Number == 44)
+          file_name += "waves.mp4";
+
+        else if (New_Image_Number == 45)
+          file_name += "paint.mp4";
+
+
 
         VP1x.VideoSetup(file_name, "0");
       }
@@ -832,7 +864,7 @@ void Video_Sculpture::Mixer(void)
   Watch_H_Location += Watch_H_Location_Inc;
   // Watch_H_Location = 0;
 
-  Fade_V_Location = 50;
+  // Fade_V_Location = 68;
 
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
@@ -845,10 +877,11 @@ void Video_Sculpture::Mixer(void)
   // but only need to update the time once a minute or so
   // adds the hands to the watch
 
-  if(D_Clock_Selected)  Build_Clock();
-  else Build_Watch();;
-
-
+  if (D_Clock_Selected)
+    Build_Clock();
+  else
+    Build_Watch();
+  ;
 
   // check tduration of Build
   // Watch_With_Both = VP2x.VideoProc_FU.clone();
