@@ -158,7 +158,8 @@ Video_Sculpture::Video_Sculpture(void)
 
   Select_Controls = 0;
   Select_Auto = false;
-  Watch_On = true ;
+  Watch_On = true;
+  D_Clock_Selected = false;
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -209,7 +210,7 @@ inline void Video_Sculpture::Build_Watch(void)
 
   // these are just for clarifying naming only pointers not copied Mat data
   Watch_Image = VP2x.VideoProc_FU;
-  Watch_Alpha = VP2x.Alpha_Channel_FU;
+  // Watch_Alpha = VP2x.Alpha_Channel_FU;
 
   Small_Hand_Image = VP3x.VideoProc_FU;
   Small_Hand_Alpha = VP3x.Alpha_Channel_FU;
@@ -225,6 +226,32 @@ inline void Video_Sculpture::Build_Watch(void)
   rotate2(Big_Hand_Image, Big_Hand_Image_Rotated, Big_Hand_Angle);
   rotate2(Big_Hand_Alpha, Big_Hand_Alpha_Rotated, Big_Hand_Angle);
   Overlay(Big_Hand_Image_Rotated, Watch_With_Small, Big_Hand_Alpha_Rotated, Watch_With_Both);
+}
+
+inline void Video_Sculpture::Build_Clock(void)
+{
+
+  // static int64_t Big_Hand_Angle, Small_Hand_Angle;
+  // these are just for clarifying naming only pointers not copied Mat data
+  // Watch_Image = VP2x.VideoProc_FU;
+  // Watch_Alpha = VP2x.Alpha_Channel_FU;
+
+  // Small_Hand_Image = VP3x.VideoProc_FU;
+  // Small_Hand_Alpha = VP3x.Alpha_Channel_FU;
+  // Big_Hand_Image = VP4x.VideoProc_FU;
+  // Big_Hand_Alpha = VP4x.Alpha_Channel_FU;
+
+  // // small hand
+  // rotate2(Small_Hand_Image, Small_Hand_Image_Rotated, Small_Hand_Angle);
+  // rotate2(Small_Hand_Alpha, Small_Hand_Alpha_Rotated, Small_Hand_Angle);
+  // Overlay(Small_Hand_Image_Rotated, Watch_Image, Small_Hand_Alpha_Rotated, Watch_With_Small);
+
+  // // big hand
+  // rotate2(Big_Hand_Image, Big_Hand_Image_Rotated, Big_Hand_Angle);
+  // rotate2(Big_Hand_Alpha, Big_Hand_Alpha_Rotated, Big_Hand_Angle);
+  // Overlay(Big_Hand_Image_Rotated, Watch_With_Small, Big_Hand_Alpha_Rotated, Watch_With_Both);
+
+  Watch_With_Both = VP2x.VideoProc_FU;
 }
 
 inline void Video_Sculpture::Shrink_Watch(double scale_factor_h, double scale_factor_v)
@@ -326,10 +353,42 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
     else if ((kp_2ago == 'w') & isdigit(last_kp) & isdigit(kp))
     {
+
+      D_Clock_Selected = false;
       New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
-      file_name = "../../Movies/wtc" + to_string(New_Watch_Number) + "s.tif"; //   10s.tif" ;
+
       if ((New_Watch_Number >= 0) && (New_Watch_Number <= 11))
+      {
+        file_name = "../../Movies/wtc" + to_string(New_Watch_Number) + "s.tif"; //   10s.tif" ;
         VP2x.StillSetupWithAlpha(file_name, "1");
+      }
+
+      cout << endl
+           << endl
+           << "  file_name  " << file_name << endl
+           << endl;
+    }
+
+    else if ((kp_2ago == 't') & isdigit(last_kp) & isdigit(kp))
+    {
+
+      D_Clock_Selected = true;
+      New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
+      if (New_Watch_Number <= 4)
+      {
+        if (New_Watch_Number == 0)
+          file_name = "../../Movies/dclock1.tif"; //   10s.tif" ;
+        else if (New_Watch_Number == 1)
+          file_name = "../../Movies/1253.tif"; //   10s.tif" ;          
+        else if (New_Watch_Number == 2)
+          file_name = "../../Movies/125324.tif"; //   10s.tif" ;     
+        else if (New_Watch_Number == 3)
+          file_name = "../../Movies/1253xx.tif"; //   10s.tif" ;     
+        else if (New_Watch_Number == 4)
+          file_name = "../../Movies/125324z.tif"; //   10s.tif" ;               
+        VP2x.StillSetupWithAlpha(file_name, "1");
+      }
+
       cout << endl
            << endl
            << "  file_name  " << file_name << endl
@@ -363,122 +422,117 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         else if (New_Image_Number == 3)
           file_name += "waves-MPZ.mp4";
         else if (New_Image_Number == 4)
-          file_name += "comp1_264.mov";                    
+          file_name += "comp1_264.mov";
         else if (New_Image_Number == 5)
           file_name += "comp4_264.mov";
         else if (New_Image_Number == 4)
-          file_name += "comp5_264.mov";                    
+          file_name += "comp5_264.mov";
         else if (New_Image_Number == 5)
-          file_name += "comp6_264.mov";     
+          file_name += "comp6_264.mov";
 
         else if (New_Image_Number == 6)
-          file_name += "stairs.mov";      
+          file_name += "stairs.mov";
 
         else if (New_Image_Number == 7)
-          file_name += "swim.mp4";      
+          file_name += "swim.mp4";
 
         else if (New_Image_Number == 8)
-          file_name += "waves2.mp4";      
+          file_name += "waves2.mp4";
 
         else if (New_Image_Number == 9)
-          file_name += "run.mp4";      
+          file_name += "run.mp4";
 
         else if (New_Image_Number == 10)
-          file_name += "w40.mp4";      
+          file_name += "w40.mp4";
 
         else if (New_Image_Number == 11)
-          file_name += "w60.mp4";      
+          file_name += "w60.mp4";
 
         else if (New_Image_Number == 12)
-          file_name += "w80.mp4";      
+          file_name += "w80.mp4";
 
         else if (New_Image_Number == 13)
-          file_name += "w80bw.mp4";      
+          file_name += "w80bw.mp4";
 
         else if (New_Image_Number == 14)
-          file_name += "w100.mp4";      
+          file_name += "w100.mp4";
 
         else if (New_Image_Number == 15)
-          file_name += "water40BW_obj50.mov";      
+          file_name += "water40BW_obj50.mov";
 
         else if (New_Image_Number == 16)
-          file_name += "water40color_obj30.mov";      
+          file_name += "water40color_obj30.mov";
 
         else if (New_Image_Number == 17)
-          file_name += "water40color_obj100.mov";      
+          file_name += "water40color_obj100.mov";
 
         else if (New_Image_Number == 18)
-          file_name += "water60BW_obj50.mov";      
-
+          file_name += "water60BW_obj50.mov";
 
         else if (New_Image_Number == 19)
-          file_name += "water60color_obj30.mov";      
+          file_name += "water60color_obj30.mov";
 
         else if (New_Image_Number == 20)
-          file_name += "water60color_obj100.mov";        
+          file_name += "water60color_obj100.mov";
 
         else if (New_Image_Number == 21)
-          file_name += "water80BW_obj50.mov";           
+          file_name += "water80BW_obj50.mov";
 
         else if (New_Image_Number == 22)
-          file_name += "water80color_obj30.mov";          
+          file_name += "water80color_obj30.mov";
 
         else if (New_Image_Number == 23)
-          file_name += "water80color_obj100.mov";           
+          file_name += "water80color_obj100.mov";
 
         else if (New_Image_Number == 24)
-          file_name += "water100BW_obj50.mov";          
+          file_name += "water100BW_obj50.mov";
 
         else if (New_Image_Number == 25)
-          file_name += "water100color_obj30.mov";        
+          file_name += "water100color_obj30.mov";
 
         else if (New_Image_Number == 26)
-          file_name += "water100color_obj100.mov";           
+          file_name += "water100color_obj100.mov";
 
         else if (New_Image_Number == 27)
-          file_name += "obj_in_water2.mp4";          
+          file_name += "obj_in_water2.mp4";
 
         else if (New_Image_Number == 28)
-          file_name += "victorian_in_water.mov";      
+          file_name += "victorian_in_water.mov";
 
         else if (New_Image_Number == 29)
-          file_name += "vic_slow_rotation.mov";   
+          file_name += "vic_slow_rotation.mov";
 
         else if (New_Image_Number == 30)
-          file_name += "vic_fast_rotation.mov"; 
+          file_name += "vic_fast_rotation.mov";
 
         else if (New_Image_Number == 31)
-          file_name += "clock_spinning.mov";           
+          file_name += "clock_spinning.mov";
 
-                  else if (New_Image_Number == 32)
-          file_name += "clk_spinning_in_wat.mov"; 
+        else if (New_Image_Number == 32)
+          file_name += "clk_spinning_in_wat.mov";
 
-                  else if (New_Image_Number == 33)
-          file_name += "clock.mov"; 
+        else if (New_Image_Number == 33)
+          file_name += "clock.mov";
 
-                  else if (New_Image_Number == 34)
-          file_name += "clock_in_water.mov"; 
+        else if (New_Image_Number == 34)
+          file_name += "clock_in_water.mov";
 
-                  else if (New_Image_Number == 35)
-          file_name += "cwfm.mov"; 
+        else if (New_Image_Number == 35)
+          file_name += "cwfm.mov";
 
-                  else if (New_Image_Number == 36)
-          file_name += "cwfr.mov"; 
+        else if (New_Image_Number == 36)
+          file_name += "cwfr.mov";
 
-                  else if (New_Image_Number == 37)
-          file_name += "big_watch.mov"; 
+        else if (New_Image_Number == 37)
+          file_name += "big_watch.mov";
 
-                  else if (New_Image_Number == 38)
-          file_name += "wfm.mov"; 
+        else if (New_Image_Number == 38)
+          file_name += "wfm.mov";
 
-                  else if (New_Image_Number == 39)
-          file_name += "wpm.mov";           
-
-
+        else if (New_Image_Number == 39)
+          file_name += "wpm.mov";
 
         VP1x.VideoSetup(file_name, "0");
-
-
       }
 
       cout << endl
@@ -649,8 +703,6 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
       {
         Watch_On = !Watch_On;
       }
-
-
     }
 
     cout << " key  " << (uint)kp << " last key  " << (uint)last_kp << endl;
@@ -792,7 +844,12 @@ void Video_Sculpture::Mixer(void)
   // this is really slow on the NUC!!!
   // but only need to update the time once a minute or so
   // adds the hands to the watch
-  Build_Watch();
+
+  if(D_Clock_Selected)  Build_Clock();
+  else Build_Watch();;
+
+
+
   // check tduration of Build
   // Watch_With_Both = VP2x.VideoProc_FU.clone();
 
@@ -843,8 +900,8 @@ void Video_Sculpture::Mixer(void)
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 
-  if(!Watch_On)VideoSum_FU = VP1x.VideoProc_FU.clone();
-
+  if (!Watch_On)
+    VideoSum_FU = VP1x.VideoProc_FU.clone();
 }
 
 void Video_Sculpture::Display(void)

@@ -24,6 +24,9 @@ public:
   void Display(void);
 
   void Build_Watch(void);
+
+  inline void Build_Clock(void);
+
   void Shrink_Watch(double scale_factor_h, double scale_factor_v);
 
   inline void Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v);
@@ -199,6 +202,8 @@ public:
   void KeyBoardInput(unsigned char &kp, bool &Stop_Program);
 
   bool Video_On;
+
+  bool D_Clock_Selected;
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */
