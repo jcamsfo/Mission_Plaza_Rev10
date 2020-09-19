@@ -1,5 +1,8 @@
 //  Filtering Declarations
 
+#include "defines_Mission_Plaza.h"
+
+
 #ifndef PROCESS_FILTERS_H
 #define PROCESS_FILTERS_H
 #pragma once
@@ -24,13 +27,13 @@ void All_Filters(bool *Reset_All);
 
 
 
-// UMat versions
-void Filter_HxV_1p1_U(cv::UMat src);
-void Filter_HxV_2p2_U(cv::UMat src);
-void Filter_HxV_3p3_U(cv::UMat src);
-void Filter_HxV_4p4_U(cv::UMat src);
-void Filter_3Taps_U(cv::UMat in, bool On1p1, bool On2p2, bool On3p3, bool On4p4, bool On3Taps);
-void Filter_Blurs_U(cv::UMat in, bool On2x2, bool On3x3, bool On4x4, bool On5x5, bool On6x6, bool On7x7, bool OnOnes);
+// UMat_Type versions
+void Filter_HxV_1p1_U(cv::UMat_Type src);
+void Filter_HxV_2p2_U(cv::UMat_Type src);
+void Filter_HxV_3p3_U(cv::UMat_Type src);
+void Filter_HxV_4p4_U(cv::UMat_Type src);
+void Filter_3Taps_U(cv::UMat_Type in, bool On1p1, bool On2p2, bool On3p3, bool On4p4, bool On3Taps);
+void Filter_Blurs_U(cv::UMat_Type in, bool On2x2, bool On3x3, bool On4x4, bool On5x5, bool On6x6, bool On7x7, bool OnOnes);
 
 
 

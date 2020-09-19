@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+
+#include "defines_Mission_Plaza.h"
 #include "player_class.h"
 #include "measure2.h"
 #include "process_other.h"
@@ -15,9 +17,9 @@ using namespace std::chrono;
 using namespace std;
 using namespace cv;
 
-inline void RGB_Gamma_Correction(cv::UMat &src, float Gamma_Correction)
+inline void RGB_Gamma_Correction(cv::UMat_Type &src, float Gamma_Correction)
 {
-  UMat src_squared;
+  UMat_Type src_squared;
   multiply(src, src, src_squared); // square  255 * too big
   addWeighted(src, 1 - Gamma_Correction, src_squared, .0039 * Gamma_Correction, 0.0, src);
 }
@@ -56,7 +58,12 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
     // creata 3 channel from a 1 channel
     cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
     merge(temp, 3, Alpha_Channel_F);
+
+#ifdef UMat_Enable
     Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+#else
+    Alpha_Channel_FU = Alpha_Channel_F;
+#endif
 
     // merge the 1st 3 channels of the 4 channel input
     VideoChannels4[0].copyTo(VideoChannels3[0]);
@@ -68,7 +75,7 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
     // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
   }
 
-  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
   // CREATES NOT NEEDED
   // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
   // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
@@ -110,7 +117,7 @@ void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
   ImageHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
   ImageDuration = capMain.get(cv::CAP_PROP_FRAME_COUNT);
 
-  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
   // CREATES NOT NEEDED
   // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
   // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
@@ -187,15 +194,26 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   // creata 3 channel from a 1 channel
   cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
   merge(temp, 3, Alpha_Channel_F);
+
+#ifdef UMat_Enable
   Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+#else
+  Alpha_Channel_FU = Alpha_Channel_F;
+#endif
 
   subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
+
+#ifdef UMat_Enable
   Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+#else
+  Alpha_Channel_Inv_FU = Alpha_Channel_Inv_F;
+#endif
+
 
   // to view the appha channel
   // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
 
-  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
   // CREATES NOT NEEDED
   // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
   // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
@@ -261,6 +279,7 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
 
 
 
+
   // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
 
   // convert alpha channel to floating point 3 channel  0 - 1
@@ -269,15 +288,25 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   // creata 3 channel from a 1 channel
   cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
   merge(temp, 3, Alpha_Channel_F);
+
+#ifdef UMat_Enable
   Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+#else
+  Alpha_Channel_FU = Alpha_Channel_F;
+#endif
 
   subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
+
+#ifdef UMat_Enable
   Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+#else
+  Alpha_Channel_Inv_FU = Alpha_Channel_Inv_F;
+#endif
 
   // to view the appha channel
   // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
 
-  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
   // CREATES NOT NEEDED
   // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
   // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
@@ -337,15 +366,19 @@ void Video_Player_With_Processing::Process(void)
       if (capMain.get(cv::CAP_PROP_POS_FRAMES) == ImageDuration)
         capMain.set(cv::CAP_PROP_POS_FRAMES, 0);
 
-      // Change_Seam(img_in_A, 1);  not a UMat function
+      // Change_Seam(img_in_A, 1);  not a UMat_Type function
       Shift_Image_Horizontal(VideoMain, 180);
     }
   }
 
+#ifdef UMat_Enable
   // convert to UMat for faster processing
   VideoMain.copyTo(VideoMain_U);
   // convert to float for more accuracy
   VideoMain_U.convertTo(VideoMain_FU, CV_32FC3);
+#else
+  VideoMain.convertTo(VideoMain_FU, CV_32FC3);
+#endif
 
   // filter choices in-series allowable   ***  NOMINAL 3 & 5 on  ***
   if (Ones2x2_A)
@@ -385,18 +418,28 @@ void Video_Player_With_Processing::Process(void)
   // chroma_gain*((B-Y,  G-Y,  R-Y)  +  B,G,R  to get back to BGR with color level changed
   add(VideoTemp_FU3, Color_Difference_FU3, VideoProc_FU);
 
-  VideoProc_FU.copyTo(VideoProc_F);
-
+#ifdef UMat_Enable
   // convert back to 8 bits unsigned integer  for the display
   VideoProc_FU.convertTo(VideoMain_U, CV_8UC3);
   // make a copy for the display in 8 bit Mat vs UMat
   VideoMain_U.copyTo(VideoDisplay);
+#else
+  VideoProc_FU.convertTo(VideoDisplay, CV_8UC3);
+#endif
+
 }
+
+
 
 void Video_Player_With_Processing::AlphaProcess(void)
 {
 
+#ifdef UMat_Enable
   Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+#else
+  Alpha_Channel_FU = Alpha_Channel_F;
+#endif
+
   // filter choices in-series allowable   ***  NOMINAL 3 & 5 on  ***
   if (Ones2x2_A)
     blur(Alpha_Channel_FU, Alpha_Channel_FU, Size(2, 2));

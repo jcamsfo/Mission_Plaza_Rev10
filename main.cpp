@@ -36,6 +36,10 @@
 using namespace std;
 using namespace cv;
 
+
+
+
+
 bool FTDI_On = true;
 
 int main()
@@ -104,48 +108,37 @@ int main()
 
         FTX.FTDI_Load_TxBuffer((char *)SC1.Samples_Mapped_To_Sculpture);
 
-        // no threading version
-        // FTX.FTDI_Txx(); // TxBuffer, Bytes_Wrote)
-        // SC1.Play_All();
 
+        // no threading version          // NUC DELAY = 1.8 ms 
+        // FTX.FTDI_Txx(); // .8 ms
+        // SC1.Play_All(); // 1.3 ms             
+
+
+        // threading version     // NUC DELAY = 2 ms
         std::thread t1(&Video_Sculpture::Play_All, &SC1);
-
         std::thread t2(&USB_FTDI_Channel::FTDI_Txx, &FTX);
-
         t1.join();
         t2.join();
 
-        // if (loop == 20)
-        // {
-        //   for (int i = 0; i < 14000; i++)
-        //   {
 
-        //     if ((SC1.Samples_Mapped_To_Sculpture[i] == 0xffff) && (SC1.Samples_Mapped_To_Sculpture[1 + i] == 0xaaaa) ||
-        //         (SC1.Samples_Mapped_To_Sculpture[i] == 0xffff) && (SC1.Samples_Mapped_To_Sculpture[1 + i] == 0x5555))
-        //     {
-        //       cout << endl;
-        //       if (SC1.Samples_Mapped_To_Sculpture[1 + i] == 0x5555)
-        //         cout << " ";
-        //       for (int j = 0; j < 30; j++)
-        //       {
-        //         cout << (uint16_t)SC1.Samples_Mapped_To_Sculpture[i + j] << " ";
-        //       }
-        //     }
-        //   }
-        //   exit(0);
-        // }
 
+        // NUC DELAY = 9.5 ms NUC
+        Time_Delay_2.Start_Delay_Timer();             
         SC1.Mixer();
+        Time_Delay_2.End_Delay_Timer();           
 
+
+      // NUC DELAY = .34 ms NUC
         SC1.Multi_Map_Image_To_Sculpture();
 
+    
+
+        // Time_Delay_2.Start_Delay_Timer();
+      // NUC DELAY = .67 ms NUC        
         SC1.Display();
+        // Time_Delay_2.End_Delay_Timer();            
 
         Process_Time.End_Delay_Timer();
-
-        Time_Delay_2.Start_Delay_Timer();
-
-        Time_Delay_2.End_Delay_Timer();
 
         Time_Delay_1.End_Delay_Timer();
         loop++;
@@ -165,7 +158,7 @@ int main()
           cout << " " << std::setprecision(2) << setw(4) << Process_Time.time_delay_max;
           cout << " " << std::setprecision(2) << setw(4) << Process_Time.time_delay_min;
 
-          cout << "    display time: " << Time_Delay_2.time_delay_max;
+          cout << "    display time: " << Time_Delay_2.time_delay << "  " << Time_Delay_2.time_delay_avg;
           cout << "    waitkey time: " << Time_Delay_3.time_delay;
 
           cout << "    frame#: " << loop << std::endl;
@@ -175,13 +168,11 @@ int main()
         Time_Delay_3.Start_Delay_Timer();
 
         unsigned char c = 255;
-        c = (unsigned char )waitKey(1);
+        c = (unsigned char)waitKey(1);
 
         SC1.KeyBoardInput(c, Finished);
         if (Finished)
           break;
-
-
 
         // if (c != -1)
         // {
@@ -197,10 +188,8 @@ int main()
         //   else if (c == 'd')
         //   {
         //     SC1.display_on_X = !SC1.display_on_X;
-        //   }
-
-        //   last_c = c;
-        // }
+        //   }        FTX.FTDI_Txx(); // TxBuffer, Bytes_Wrote)
+        SC1.Play_All();
         // if (Finished)
         //   break;
 

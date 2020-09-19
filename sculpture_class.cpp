@@ -9,6 +9,7 @@
 #include <thread>
 #include <iomanip>
 
+#include "defines_Mission_Plaza.h"
 #include "sculpture_class.h"
 #include "player_class.h"
 #include "measure2.h"
@@ -50,7 +51,7 @@ void alphaBlend(Mat &foreground, Mat &background, Mat &alpha, Mat &outImage)
   }
 }
 
-inline void rotate2(UMat &src, UMat &dst, double angle) //rotate function returning mat object with parametres imagefile and angle
+inline void rotate2(UMat_Type &src, UMat_Type &dst, double angle) //rotate function returning mat object with parametres imagefile and angle
 {
   // static int Rotating_Angle;
 
@@ -62,9 +63,9 @@ inline void rotate2(UMat &src, UMat &dst, double angle) //rotate function return
   warpAffine(src, dst, r, Size(src.cols, src.rows)); ///applie an affine transforation to image.
 }
 
-inline void Overlay(UMat &Frgnd, UMat &Bkgnd, UMat &Alpha, UMat &Result)
+inline void Overlay(UMat_Type &Frgnd, UMat_Type &Bkgnd, UMat_Type &Alpha, UMat_Type &Result)
 {
-  static UMat Temp;
+  static UMat_Type Temp;
   multiply(Bkgnd, Alpha, Temp);
   addWeighted(Temp, 1, Frgnd, 1, 0, Result);
 }
@@ -113,7 +114,7 @@ Video_Sculpture::Video_Sculpture(void)
 
   AP1x.AlphaSetupNoProcess("../../Movies/fader_soft_3C.tif", "4");
 
-  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
   // CREATES NOT NEEDED
   // VP1x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
   // VP3x_Rotated_FU.create(IMAGE_COLS, IMAGE_ROWS, CV_32FC3);
@@ -272,10 +273,10 @@ inline void Video_Sculpture::Shrink_Watch(double scale_factor_h, double scale_fa
 // /** bicubic interpolation */
 // INTER_CUBIC          = 2,
 
-inline void Video_Sculpture::Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v)
+inline void Video_Sculpture::Shrink_Object(UMat_Type &src, UMat_Type &src_alpha, UMat_Type &dst, UMat_Type &dst_alpha, double scale_factor_h, double scale_factor_v)
 {
-  static UMat resized;
-  static UMat resized_alpha;
+  static UMat_Type resized;
+  static UMat_Type resized_alpha;
   static int x, y;
   resize(src, resized, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
   x = (int)(.5 + (((float)(src.cols - resized.cols)) / 2));
@@ -302,7 +303,7 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   Scalar Water_Color = (Select_Controls == 0) ? Onnn : Offf;
   Scalar Watch_Color = (Select_Controls == 1) ? Onnn : Offf;
 
-  putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  Video On &d", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma, Video_On), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
+  putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  Video On %d", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma, Video_On), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
 
   putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0, LINE_AA);
   putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
@@ -354,7 +355,6 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     else if ((kp_2ago == 'w') & isdigit(last_kp) & isdigit(kp))
     {
 
-
       Fade_V_Location = 50;
       D_Clock_Selected = false;
       New_Watch_Number = kp - '0' + 10 * (last_kp - '0');
@@ -394,7 +394,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         else if (New_Watch_Number == 5)
         {
           file_name = "../../Movies/hourglass.tif"; //   10s.tif"
-                Fade_V_Location = 68;
+          Fade_V_Location = 68;
         }
         VP2x.StillSetupWithAlpha(file_name, "1");
         ;
@@ -561,8 +561,6 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
         else if (New_Image_Number == 45)
           file_name += "paint.mp4";
-
-
 
         VP1x.VideoSetup(file_name, "0");
       }
@@ -869,7 +867,7 @@ void Video_Sculpture::Mixer(void)
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
   //    FIX THE MEMORY LEAKS ON THE NUC though there arent any on the desktop!!!!!!!!!!!!!!
-  //    maybe do a non UMat version
+  //    maybe do a non UMat_Type version
 
   Load_Time();
 
@@ -878,31 +876,33 @@ void Video_Sculpture::Mixer(void)
   // adds the hands to the watch
 
   if (D_Clock_Selected)
-    Build_Clock();
+    Build_Clock(); // NUC 0 ms
   else
-    Build_Watch();
-  ;
+    Build_Watch(); // NUC 5 ms
 
-  // check tduration of Build
+  // check duration of Build
   // Watch_With_Both = VP2x.VideoProc_FU.clone();
 
   // works
   // Shift_Image_Vertical_U(Alpha_Fade_Shifted_FU, 50, VP2x.Ones_Float_Mat_U);
   // seems faster
   // set the location of the watch vertical fader
+
+  // NUC .22 ms
   Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, Fade_V_Location, VP2x.Ones_Float_Mat_U);
 
-  // multiply the 2 alphas the watch alpha and the fade alpha
+  // multiply the 2 alphas the watch alpha and the fade alpha  // NUC .12 ms
   multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
-  // generate the final watch matted image
+
+  // generate the final watch matted image  // NUC .12 ms
   multiply(Watch_With_Both, Alpha_Fade_Shifted_FU, Watch_With_Both_Faded_U);
 
   // this shrinks the watch and its alpha , but puts them back in a full size Mat
-  // Shrink_Object(Watch_With_Both, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, shrink_val, .5);
+  // NUC  .54 ms
   Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);
 
   //  useful for isolating the scaling problem
-  // UMat Mat_Temp;
+  // UMat_Type Mat_Temp;
   // resize(VideoSum_Comp_FU, Mat_Temp, Size(), .25, .25, INTER_NEAREST);
   // resize(Mat_Temp, Mat_Temp, Size(), 4, 4, INTER_NEAREST);
   // blur(Mat_Temp, Mat_Temp, Size(6, 6));
@@ -912,26 +912,30 @@ void Video_Sculpture::Mixer(void)
   // Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U);
   // imshow("17", DisplayTemp);
 
-  // this rotates the watch and its alpha
+  // this rotates the watch and its alpha   // NUC 1.7 ms for both
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Watch_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Watch_Angle);
 
-  // this moves the watch and its alpha horizontally and vertically (works out of frame also)
+  // this moves the watch and its alpha horizontally and vertically (works out of frame also)  // NUC .5 ms for both
   Shift_Image_Horizontal_Vertical_U3(VideoSum_FUE, Watch_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
   Shift_Image_Horizontal_Vertical_U3(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
 
-  // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges
+  // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges   // 1.3 ms for all
   blur(Watch_Shifted_FU, VideoSum_FUE, Size(3, 3));
   blur(VideoSum_FUE, VideoSum_FUE, Size(5, 5));
   blur(Watch_Alpha_Shifted_FU, Alpha_Rotated_U, Size(3, 3));
   blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
 
-  //  create the inverted alpha for the background
+  //  create the inverted alpha for the background  // NUC  .075 ms
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
 
-  //  soft key the final watch over the waves
+  //  soft key the final watch over the waves  // .21 ms for both
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
+
+  New_Timer.Start_Delay_Timer();
+  New_Timer.End_Delay_Timer();
+  // cout << " New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;
 
   if (!Watch_On)
     VideoSum_FU = VP1x.VideoProc_FU.clone();
@@ -940,8 +944,13 @@ void Video_Sculpture::Mixer(void)
 void Video_Sculpture::Display(void)
 {
   // quicker as a 2 step convert
-  VideoSum_FU.convertTo(VideoSum_U, CV_8UC3);     // convert a UMAt float to a UMat int
-  VideoSum_U.convertTo(VideoSumDisplay, CV_8UC3); // convert a UMAt int to a Mat int
+
+#ifdef UMat_Enable
+  VideoSum_FU.convertTo(VideoSum_U, CV_8UC3);     // convert a UMat_Type float to a UMat_Type int
+  VideoSum_U.convertTo(VideoSumDisplay, CV_8UC3); // convert a UMat_Type int to a Mat int
+#else
+  VideoSum_FU.convertTo(VideoSumDisplay, CV_8UC3);
+#endif
 
   //  Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(VideoSumDisplay);
 
@@ -1078,9 +1087,12 @@ void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void
 
   Pixel_Type_F Pixel_Vec;
 
+#ifdef UMat_Enable
   VideoSum_FU.copyTo(VideoSum_F);
-
   VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256); // this does the clipping for you !!!
+#else
+  VideoSum_FU.convertTo(VideoSum_16, CV_16UC3, 256);
+#endif
 
   i = 0;
 
@@ -1346,7 +1358,7 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
 // cout << Grabed_Buffer_RGBW_A[0] / 256 << "  " << Grabed_Buffer_RGBW_A[1] / 256 << "  " << Grabed_Buffer_RGBW_A[2] / 256 << endl;
 
 // //version 1 non vectored  Sample_Points_Map_A
-// //convert from UMat to Mat
+// //convert from UMat_Type to Mat
 // VideoSum_FU.copyTo(VideoSum_F);
 // //convert from Float to 16 bit unsigned
 // VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256);
@@ -1354,7 +1366,7 @@ void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_
 // cout << Grabed_Buffer_RGBW_A[0] / 256 << "  " << Grabed_Buffer_RGBW_A[1] / 256 << "  " << Grabed_Buffer_RGBW_A[2] / 256 << endl;
 
 // // version 2 vectored  Sample_Points_Map_V
-// // convert from UMat to Mat
+// // convert from UMat_Type to Mat
 // VideoSum_FU.copyTo(VideoSum_F);
 // //convert from Float to 16 bit unsigned
 // VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256);

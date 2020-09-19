@@ -40,8 +40,8 @@ void Shift_Image_Horizontal(cv::Mat &Vid_In, int H_Location)
 }
 
 // this could be faster maybe with an output Mat instead of modifying the input Mat
-// shift image HORIZONTALLY with wrap around  UMat
-void Shift_Image_Horizontal_U(cv::UMat &Vid_In, int H_Location)
+// shift image HORIZONTALLY with wrap around  UMat_Type
+void Shift_Image_Horizontal_U(cv::UMat_Type &Vid_In, int H_Location)
 {
     // made everything static maybe for memory leaks ?
 
@@ -51,11 +51,11 @@ void Shift_Image_Horizontal_U(cv::UMat &Vid_In, int H_Location)
     static int ROI_Height;
     static int ROI_Width_2;
 
-    static UMat ROI_Before_1;
-    static UMat ROI_Before_2;
+    static UMat_Type ROI_Before_1;
+    static UMat_Type ROI_Before_2;
 
-    static UMat ROI_After_1;
-    static UMat ROI_After_2;
+    static UMat_Type ROI_After_1;
+    static UMat_Type ROI_After_2;
 
     Location_Wrap = H_Location % IMAGE_COLS;
     // cout << endl << "Locatin_Wrap " << Location_Wrap << endl;
@@ -81,8 +81,8 @@ void Shift_Image_Horizontal_U(cv::UMat &Vid_In, int H_Location)
 }
 
 // this could be faster maybe with an output Mat instead of modifying the input Mat
-// shift image HORIZONTALLY and VERTICALLY with wrap around  ASSUMES MOVING DOWN ONLY  UMat
-void Shift_Image_Horizontal_Vertical_U(cv::UMat &Vid_In, int H_Location, int V_Location)
+// shift image HORIZONTALLY and VERTICALLY with wrap around  ASSUMES MOVING DOWN ONLY  UMat_Type
+void Shift_Image_Horizontal_Vertical_U(cv::UMat_Type &Vid_In, int H_Location, int V_Location)
 {
     // made everything static maybe helps memory leaks ?
 
@@ -94,11 +94,11 @@ void Shift_Image_Horizontal_Vertical_U(cv::UMat &Vid_In, int H_Location, int V_L
     static int ROI_Height;
     static int ROI_Width_2;
 
-    static UMat ROI_Before_1;
-    static UMat ROI_Before_2;
+    static UMat_Type ROI_Before_1;
+    static UMat_Type ROI_Before_2;
 
-    static UMat ROI_After_1;
-    static UMat ROI_After_2;
+    static UMat_Type ROI_After_1;
+    static UMat_Type ROI_After_2;
 
     Location_Wrap = H_Location % IMAGE_COLS;
     // cout << endl << "Locatin_Wrap " << Location_Wrap << endl;
@@ -126,9 +126,9 @@ void Shift_Image_Horizontal_Vertical_U(cv::UMat &Vid_In, int H_Location, int V_L
 }
 
 //  this could be faster maybe with an output Mat instead of modifying the input Mat
-//  shift image HORIZONTALLY and VERTICALLY with wrap around  ASSUMES MOVING DOWN ONLY  UMat
+//  shift image HORIZONTALLY and VERTICALLY with wrap around  ASSUMES MOVING DOWN ONLY  UMat_Type
 //  Fills above  the shift with the Bkgnd
-void Shift_Image_Horizontal_Vertical_U2(cv::UMat &Vid_In, cv::UMat &Vid_Out, int H_Location, int V_Location, UMat &Bkgnd)
+void Shift_Image_Horizontal_Vertical_U2(cv::UMat_Type &Vid_In, cv::UMat_Type &Vid_Out, int H_Location, int V_Location, UMat_Type &Bkgnd)
 {
     // made everything static maybe helps memory leaks ?
 
@@ -142,14 +142,14 @@ void Shift_Image_Horizontal_Vertical_U2(cv::UMat &Vid_In, cv::UMat &Vid_Out, int
     static int ROI_Height;
     static int ROI_Width_2;
 
-    static UMat ROI_Before_1;
-    static UMat ROI_Before_2;
+    static UMat_Type ROI_Before_1;
+    static UMat_Type ROI_Before_2;
 
-    static UMat ROI_After_1;
-    static UMat ROI_After_2;
+    static UMat_Type ROI_After_1;
+    static UMat_Type ROI_After_2;
 
-    static UMat ROI_Bkgnd_Fill_Before;
-    static UMat ROI_Bkgnd_Fill_After;
+    static UMat_Type ROI_Bkgnd_Fill_Before;
+    static UMat_Type ROI_Bkgnd_Fill_After;
 
     Location_Wrap = H_Location % IMAGE_COLS;
     // cout << endl << "Locatin_Wrap " << Location_Wrap << endl;
@@ -185,7 +185,7 @@ void Shift_Image_Horizontal_Vertical_U2(cv::UMat &Vid_In, cv::UMat &Vid_Out, int
     ROI_Bkgnd_Fill_Before.copyTo(ROI_Bkgnd_Fill_After);
 }
 
-void Shift_Image_Horizontal_Vertical_U3(cv::UMat &Vid_In, cv::UMat &Vid_Out, int H_Location, int V_Location, UMat &Bkgnd)
+void Shift_Image_Horizontal_Vertical_U3(cv::UMat_Type &Vid_In, cv::UMat_Type &Vid_Out, int H_Location, int V_Location, UMat_Type &Bkgnd)
 {
     // made everything static maybe helps memory leaks ?
 
@@ -199,14 +199,14 @@ void Shift_Image_Horizontal_Vertical_U3(cv::UMat &Vid_In, cv::UMat &Vid_Out, int
     static int ROI_Height;
     static int ROI_Width_2;
 
-    static UMat ROI_Before_1;
-    static UMat ROI_Before_2;
+    static UMat_Type ROI_Before_1;
+    static UMat_Type ROI_Before_2;
 
-    static UMat ROI_After_1;
-    static UMat ROI_After_2;
+    static UMat_Type ROI_After_1;
+    static UMat_Type ROI_After_2;
 
-    static UMat ROI_Bkgnd_Fill_Before;
-    static UMat ROI_Bkgnd_Fill_After;
+    static UMat_Type ROI_Bkgnd_Fill_Before;
+    static UMat_Type ROI_Bkgnd_Fill_After;
 
     Rect Rect_Before_1, Rect_Before_2, Rect_After_1, Rect_After_2;
 
@@ -272,14 +272,14 @@ void Shift_Image_Horizontal_Vertical_U3(cv::UMat &Vid_In, cv::UMat &Vid_Out, int
 }
 
 // this could be faster maybe with an output Mat instead of modifying the input Mat
-//  shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat
-void Shift_Image_Vertical_U(cv::UMat &Vid_In, int V_Location)
+//  shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat_Type
+void Shift_Image_Vertical_U(cv::UMat_Type &Vid_In, int V_Location)
 {
     // made everything static maybe helps memory leaks ?
     static int ROI_Width;
     static int ROI_Height;
-    static UMat ROI_Before;
-    static UMat ROI_After;
+    static UMat_Type ROI_Before;
+    static UMat_Type ROI_After;
 
     ROI_Width = IMAGE_COLS;
     ROI_Height = IMAGE_ROWS - V_Location;
@@ -294,19 +294,19 @@ void Shift_Image_Vertical_U(cv::UMat &Vid_In, int V_Location)
 
 // this could be faster maybe with an output Mat instead of modifying the input Mat
 // this one assumes that the shift on main is always down
-//  shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat
+//  shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat_Type
 // FILLS above the shift with Bkgnd Mat
-void Shift_Image_Vertical_U(cv::UMat &Vid_In, int V_Location, cv::UMat &Bkgnd)
+void Shift_Image_Vertical_U(cv::UMat_Type &Vid_In, int V_Location, cv::UMat_Type &Bkgnd)
 {
     // made everything static maybe helps memory leaks ?
     static int ROI_Width;
     static int ROI_Height_Main;
-    static UMat ROI_Main_Before;
-    static UMat ROI_Main_After;
+    static UMat_Type ROI_Main_Before;
+    static UMat_Type ROI_Main_After;
 
     static int ROI_Height_Fill;
-    static UMat ROI_Fill_Before;
-    static UMat ROI_Fill_After;
+    static UMat_Type ROI_Fill_Before;
+    static UMat_Type ROI_Fill_After;
 
     ROI_Width = IMAGE_COLS;
     ROI_Height_Main = IMAGE_ROWS - V_Location;
@@ -327,16 +327,16 @@ void Shift_Image_Vertical_U(cv::UMat &Vid_In, int V_Location, cv::UMat &Bkgnd)
 
 // this could be faster maybe with an output Mat instead of modifying the input Mat
 // this one assumes that the shift on main is always down
-// shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat
-//  has an output UMat as opposed to modifying the input !!!!!!!!!!!!!
+// shift image VERTICALLY  ASSUMES MOVING DOWN ONLY  UMat_Type
+//  has an output UMat_Type as opposed to modifying the input !!!!!!!!!!!!!
 // FILLS above the shift with Bkgnd Mat
-void Shift_Image_Vertical_U2(cv::UMat &Vid_In, UMat &Vid_Out, int V_Location, cv::UMat &Bkgnd)
+void Shift_Image_Vertical_U2(cv::UMat_Type &Vid_In, UMat_Type &Vid_Out, int V_Location, cv::UMat_Type &Bkgnd)
 {
     // made everything static maybe helps memory leaks ?
     static int ROI_Width;
     static int ROI_Height_Main;
-    static UMat ROI_Main_Before;
-    static UMat ROI_Main_After;
+    static UMat_Type ROI_Main_Before;
+    static UMat_Type ROI_Main_After;
 
     // Vid_Out = Bkgnd.clone();
 

@@ -29,7 +29,7 @@ public:
 
   void Shrink_Watch(double scale_factor_h, double scale_factor_v);
 
-  inline void Shrink_Object(UMat &src, UMat &src_alpha, UMat &dst, UMat &dst_alpha, double scale_factor_h, double scale_factor_v);
+  inline void Shrink_Object(UMat_Type &src, UMat_Type &src_alpha, UMat_Type &dst, UMat_Type &dst_alpha, double scale_factor_h, double scale_factor_v);
 
   // Read the 2 maps from the files  Sample_Points_Map and Sculpture_Map
   void Read_Maps(void);
@@ -85,29 +85,29 @@ public:
 
   bool display_on_X;
 
-  // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat (vs Mat)
+  // MAT TYPE CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
 
   // for display conversion
-  UMat VideoSum_FU, VideoSum_FUX, VideoSum_FUY, VideoSum_U;
+  UMat_Type VideoSum_FU, VideoSum_FUX, VideoSum_FUY, VideoSum_U;
 
-  UMat VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF;
+  UMat_Type VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF;
 
   Mat VideoSum_FD;
 
-  UMat VideoSum_FUDx, VideoSum_FUDy;
+  UMat_Type VideoSum_FUDx, VideoSum_FUDy;
 
-  UMat Alpha_Resized_FU;
-  UMat Alpha_Comp_FU;
+  UMat_Type Alpha_Resized_FU;
+  UMat_Type Alpha_Comp_FU;
 
-  UMat Small_Hand_Video;
+  UMat_Type Small_Hand_Video;
 
-  UMat VideoSum_Resized_FU;
+  UMat_Type VideoSum_Resized_FU;
 
-  UMat VideoSum_Comp_FU;
+  UMat_Type VideoSum_Comp_FU;
 
   Mat VideoSum_FE;
 
-  UMat Alpha_Rotated_U;
+  UMat_Type Alpha_Rotated_U;
 
   Mat Alpha_Rotated;
 
@@ -115,41 +115,41 @@ public:
 
   Mat Zeros_Float_Mat;
 
-  UMat Watch_With_Both_Faded_U;
+  UMat_Type Watch_With_Both_Faded_U;
 
-  UMat Alpha_Fade_Shifted_FU;
+  UMat_Type Alpha_Fade_Shifted_FU;
 
-  UMat Alpha_Fade_Cloned_FU;
+  UMat_Type Alpha_Fade_Cloned_FU;
 
-  UMat Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
+  UMat_Type Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
 
-  UMat Watch_Image;
-  UMat Watch_Alpha;
-  UMat Small_Hand_Image;
-  UMat Small_Hand_Alpha;
-  UMat Big_Hand_Image;
-  UMat Big_Hand_Alpha;
+  UMat_Type Watch_Image;
+  UMat_Type Watch_Alpha;
+  UMat_Type Small_Hand_Image;
+  UMat_Type Small_Hand_Alpha;
+  UMat_Type Big_Hand_Image;
+  UMat_Type Big_Hand_Alpha;
 
-  UMat Watch_With_Small;
-  UMat Watch_With_Both;
+  UMat_Type Watch_With_Small;
+  UMat_Type Watch_With_Both;
 
-  UMat Small_Hand_Image_Rotated;
-  UMat Small_Hand_Alpha_Rotated;
+  UMat_Type Small_Hand_Image_Rotated;
+  UMat_Type Small_Hand_Alpha_Rotated;
 
-  UMat Big_Hand_Image_Rotated;
-  UMat Big_Hand_Alpha_Rotated;
+  UMat_Type Big_Hand_Image_Rotated;
+  UMat_Type Big_Hand_Alpha_Rotated;
 
   // for mapping to sculpture
   Mat VideoSum_F;
-  UMat VideoSum_Small_FU;
+  UMat_Type VideoSum_Small_FU;
   Mat VideoSum_Small_F;
   Mat VideoSum_Small_16;
 
-  UMat VP1x_Rotated_FU;
-  UMat VP3x_Rotated_FU;
-  UMat VP4x_Rotated_FU;
+  UMat_Type VP1x_Rotated_FU;
+  UMat_Type VP3x_Rotated_FU;
+  UMat_Type VP4x_Rotated_FU;
 
-  UMat Alpha_Fade_FU, Alpha_Fade_Inv_FU;
+  UMat_Type Alpha_Fade_FU, Alpha_Fade_Inv_FU;
 
   Mat Sample_Point_Mat;
 
@@ -170,6 +170,8 @@ public:
   int local_oop;
 
   Prog_Durations time_test;
+
+    Prog_Durations New_Timer;
 
   void Load_Time(void);
   time_t time_time;

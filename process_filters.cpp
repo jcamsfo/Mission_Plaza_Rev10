@@ -6,6 +6,8 @@
 // #include "opencv2/highgui/highgui.hpp"
 // #include "opencv2/imgproc/imgproc.hpp"
 
+#include "process_filters.h"
+
 using namespace std;
 using namespace cv;
 
@@ -170,7 +172,7 @@ void Filter_Blurs(cv::Mat in, bool On2x2, bool On3x3, bool On4x4, bool On5x5, bo
 
 
 
-void Filter_HxV_1p1_U(cv::UMat src)
+void Filter_HxV_1p1_U(cv::UMat_Type src)
 {
     float coefs[3] = {.25, .5, .25 };
     cv::Mat mkernel_H = cv::Mat(1, 3, CV_32F, coefs);
@@ -180,7 +182,7 @@ void Filter_HxV_1p1_U(cv::UMat src)
 }
 
 
-void Filter_HxV_2p2_U(cv::UMat src)
+void Filter_HxV_2p2_U(cv::UMat_Type src)
 {
     float coefs[5] = {.25,   0, .5,  0, .25 };
     cv::Mat mkernel_H = cv::Mat(1, 5, CV_32F, coefs);
@@ -191,7 +193,7 @@ void Filter_HxV_2p2_U(cv::UMat src)
 }
 
 
-void Filter_HxV_3p3_U(cv::UMat src)
+void Filter_HxV_3p3_U(cv::UMat_Type src)
 {
     float coefs[7] = {.25, 0,  0, .5, 0,  0, .25 };
     cv::Mat mkernel_H = cv::Mat(1, 3, CV_32F, coefs);
@@ -202,7 +204,7 @@ void Filter_HxV_3p3_U(cv::UMat src)
 }
 
 
-void Filter_HxV_4p4_U(cv::UMat src)
+void Filter_HxV_4p4_U(cv::UMat_Type src)
 {
     float coefs[9] = {.25, 0,  0, 0, .5, 0, 0, 0, .25 };
     cv::Mat mkernel_H = cv::Mat(1, 9, CV_32F, coefs);
@@ -214,7 +216,7 @@ void Filter_HxV_4p4_U(cv::UMat src)
 
 
 
-void Filter_3Taps_U(cv::UMat in, bool On1p1, bool On2p2, bool On3p3, bool On4p4, bool On3Taps)
+void Filter_3Taps_U(cv::UMat_Type in, bool On1p1, bool On2p2, bool On3p3, bool On4p4, bool On3Taps)
 {
     if(On3Taps)
     {
@@ -226,7 +228,7 @@ void Filter_3Taps_U(cv::UMat in, bool On1p1, bool On2p2, bool On3p3, bool On4p4,
 }
 
 
-void Filter_Blurs_U(cv::UMat in, bool On2x2, bool On3x3, bool On4x4, bool On5x5, bool On6x6, bool On7x7, bool OnOnes)
+void Filter_Blurs_U(cv::UMat_Type in, bool On2x2, bool On3x3, bool On4x4, bool On5x5, bool On6x6, bool On7x7, bool OnOnes)
 {
     if(OnOnes)
     {

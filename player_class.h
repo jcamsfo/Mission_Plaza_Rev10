@@ -7,6 +7,13 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 
+
+#include<unistd.h> 
+
+#include "defines_Mission_Plaza.h"
+#include "measure2.h"
+
+
 using namespace std;
 using namespace cv;
 
@@ -23,7 +30,7 @@ private:
   uint32_t ImageChannels;
   uint32_t ImageDuration;
 
-  // general terminology: _F is float _U is UMAt _FU is both
+  // general terminology: _F is float _U is UMat_Type _FU is both
 
   Mat VideoMainAlpha;
   Mat VideoMain;
@@ -32,11 +39,11 @@ private:
   Mat VideoChannels4[4];
 
 
-  UMat VideoMain_U;
-  UMat VideoMain_FU;
-  UMat Color_Difference_FU3;
-  UMat Y_FU1;
-  UMat VideoTemp_FU3;
+  UMat_Type VideoMain_U;
+  UMat_Type VideoMain_FU;
+  UMat_Type Color_Difference_FU3;
+  UMat_Type Y_FU1;
+  UMat_Type VideoTemp_FU3;
 
   string display_name;
 
@@ -61,22 +68,22 @@ public:
 
   bool player_pause;
 
-  UMat  VideoProc_FU;
+  UMat_Type  VideoProc_FU;
   Mat   VideoProc_F;
   Mat   VideoDisplay;
   Mat   Alpha_Channel_F1;
   Mat   Alpha_Channel_F;  
-  UMat  Alpha_Channel_FU;    
+  UMat_Type  Alpha_Channel_FU;    
   Mat   Alpha_Channel;  
 
   Mat   Alpha_Channel_Inv_F;
-  UMat  Alpha_Channel_Inv_FU;
+  UMat_Type  Alpha_Channel_Inv_FU;
 
   Mat  Ones_Float_Mat;
-  UMat  Ones_Float_Mat_U;  
+  UMat_Type  Ones_Float_Mat_U;  
 
   Mat   Zeros_Float_Mat;
-  UMat  Zeros_Float_Mat_U;  
+  UMat_Type  Zeros_Float_Mat_U;  
 
 
 
@@ -98,7 +105,7 @@ public:
 
   bool display_on;
 
-  
+  Prog_Durations Timer;
 
 
 };
