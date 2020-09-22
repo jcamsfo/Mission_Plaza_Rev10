@@ -13,7 +13,8 @@
 // #include <cmath>
 // #include <functional>   // std::plus
 // #include <string>
-#include <boost/algorithm/string/replace.hpp>
+
+
 
 #include "measure2.h"
 #include "file_io_2.h"
@@ -46,8 +47,49 @@ using namespace std;
 
 // const vector<int>& vect
 
-//reads a 1D or 2D csv or text file of integers ignoring commas  puts it into a 1D vector
 
+
+// trim from left
+inline std::string& ltrim(std::string& s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from right
+inline std::string& rtrim(std::string& s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from left & right
+inline std::string& trim(std::string& s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    s.erase(0, s.find_first_not_of(t));
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// copying versions
+
+inline std::string ltrim_copy(std::string s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    return ltrim(s, t);
+}
+
+inline std::string rtrim_copy(std::string s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    return rtrim(s, t);
+}
+
+inline std::string trim_copy(std::string s, const char* t = " \"\t\n\r\f\v{}[]")
+{
+    return trim(s, t);
+}
+
+
+//reads a 1D or 2D csv or text file of integers ignoring commas  puts it into a 1D vector
 bool Read_1D(vector<int> &Vec_1Dim, string file_name)
 {
 	int Val;
@@ -82,7 +124,6 @@ bool Read_1D(vector<int> &Vec_1Dim, string file_name)
 }
 
 //reads a 1D or 2D csv or text file of floats ignoring commas  puts it into a 1D vector
-
 bool Read_1D(vector<float> &Vec_1Dim, string file_name)
 {
 	float Val;
@@ -116,8 +157,9 @@ bool Read_1D(vector<float> &Vec_1Dim, string file_name)
 	}
 }
 
-//reads a 2D csv or text file of integers ignoring commas  puts it into a 2D vector
 
+
+//reads a 2D csv or text file of integers ignoring commas  puts it into a 2D vector
 bool Read_2D(vector<vector<int>> &Vec_2Dim, string file_name)
 {
 	int Val;
@@ -154,8 +196,8 @@ bool Read_2D(vector<vector<int>> &Vec_2Dim, string file_name)
 	}
 }
 
-//reads a 2D csv or text file of floats ignoring commas  puts it into a 2D vector
 
+//reads a 2D csv or text file of floats ignoring commas  puts it into a 2D vector
 bool Read_2D(vector<vector<float>> &Vec_2Dim, string file_name)
 {
 	float Val;
@@ -194,6 +236,7 @@ bool Read_2D(vector<vector<float>> &Vec_2Dim, string file_name)
 
 
 
+//reads a 2D csv or text file of integers ignoring commas  puts it into a 2D vector nad ignores xnumber of description lines
 bool Read_2D_Ignore(vector<vector<int>> &Vec_2Dim, string file_name, int Num_of_Ignore_Lines)
 {
 	int Val;
@@ -233,6 +276,85 @@ bool Read_2D_Ignore(vector<vector<int>> &Vec_2Dim, string file_name, int Num_of_
 			 << "Error opening file  " << file_name << endl;
 		return false;
 	}
+}
+
+
+
+
+// Yaml Parser
+int Read_YAML_Data(const char *Filename,  std::string  FileData[][12]   )
+{
+
+    std::ifstream infile;
+    std::string input_line;
+
+    size_t  found_comma, found_colon, found_comment;
+    bool    valid_getline;
+    size_t  value_cnt = 0,
+    line_cnt = 0;
+
+    infile.open(Filename);
+
+    valid_getline = true;
+    while(valid_getline)
+    {
+        if(std::getline(infile, input_line) )  // end of file returns 0
+        {
+            found_comment = input_line.find_first_of("#");  // is there a comment
+            found_colon = input_line.find_first_of(":");    // is there a colon
+            while( ( ( found_colon == input_line.npos) || (found_comment < found_colon) ) && (valid_getline)  ) // no colon or comment less than colon
+            {
+                if(getline(infile, input_line) )      // end of file returns 0         // keep grabbing lines until line has a colon
+                {
+                    found_colon = input_line.find_first_of(":");    // is there a colon
+                    found_comment = input_line.find_first_of("#");  // is there a comment
+                }
+                else valid_getline = false;   // end of file
+            }
+
+            if(valid_getline)
+            {
+                value_cnt = 0;
+                FileData[line_cnt][value_cnt++] = trim_copy( input_line.substr (0,found_colon) );  // parameter is before the colon
+                cout << FileData[line_cnt][value_cnt-1] << " aaa  " << endl  ;
+
+                if(found_comment != input_line.npos)input_line =  input_line.substr (0,found_comment);  // get rid of post comment
+                input_line =  input_line.substr(found_colon+1);  // get rid of parameter from string
+
+                found_comma = input_line.find_first_of(",");    // look for commas
+                if( found_comma==input_line.npos )
+                {
+                    FileData[line_cnt][value_cnt++]  = trim_copy(input_line); // no comma not found
+                    cout << FileData[line_cnt][value_cnt-1] << " bbb  " << endl  ;
+                }
+                else  // comma found
+                {
+                    while (found_comma!=input_line.npos)              // goes through at least once
+                    {
+                        FileData[line_cnt][value_cnt++]  = trim_copy(input_line.substr (0,found_comma) );      // next data
+                        cout << FileData[line_cnt][value_cnt-1] << " ccc  " << endl  ;
+                        input_line = input_line.substr (found_comma+1); // get rid of next data from string
+                        found_comma=input_line.find_first_of(",");      // check for another comma
+                    }
+                    FileData[line_cnt][value_cnt++] = trim_copy(input_line); // final data
+                    cout << FileData[line_cnt][value_cnt-1] << " ddd  " << endl  ;
+                }
+            }
+        }
+        else valid_getline = false;  // end of file
+
+        line_cnt++;
+    }
+
+    infile.close();
+
+    for(int dd=0; dd < line_cnt-1;  dd++ )
+      {
+    //   for(int ee=0;  ee<value_cnt; ee++)cout  <<  FileData[dd][ee] << "   "  ;
+    //    printf("\n");
+        }
+
+    return line_cnt-1;
 }
 
 

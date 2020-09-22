@@ -62,6 +62,7 @@ set(SOURCE_FILES
   USB_FTDI.cpp
   sculpture_class.cpp
   file_io_2.cpp
+  misc.cpp
 )
 	
 

@@ -19,6 +19,7 @@
 
 
 #include "measure2.h"
+#include <boost/algorithm/string/replace.hpp>
 
 
 
@@ -29,6 +30,8 @@ bool Read_2D(vector < vector<int> > & Vec_2Dim, string filename);
 
 bool Read_2D_Ignore(vector<vector<int>> &Vec_2Dim, string file_name);
 bool Read_2D_Ignore(vector<vector<int>> &Vec_2Dim, string file_name, int Num_of_Ignore_Lines);
+
+int Read_YAML_Data(const char *Filename,  std::string  FileData[][12]   );
 
 
 // reads  format of all ints
