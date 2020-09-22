@@ -279,8 +279,6 @@ bool Read_2D_Ignore(vector<vector<int>> &Vec_2Dim, string file_name, int Num_of_
 }
 
 
-
-
 // Yaml Parser
 int Read_YAML_Data(const char *Filename,  std::string  FileData[][12]   )
 {

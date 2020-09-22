@@ -11,6 +11,7 @@
 #include "defines_Mission_Plaza.h"
 #include "measure2.h"
 
+
 using namespace std;
 using namespace cv;
 
@@ -46,7 +47,7 @@ public:
 
   // these 2 used to Sample the image pixels using the the Sample_Points_Map
   uint16_t *Sampled_Buffer_RGBW;
-  uchar   *Sampled_Buffer_RGB;
+  uchar *Sampled_Buffer_RGB;
   float *Sampled_Buffer_RGBW_AF;
 
   uint16_t *Samples_Mapped_To_Sculpture;
@@ -54,12 +55,16 @@ public:
   // Grab the pixels from the image and store them in
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5(void);
 
-
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev6(void);
 
-  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev7(void);  
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev7(void);
 
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void);
+  
+
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type & Video_In);
+
+
 
   void Map_Subsampled_To_Sculpture(uint16_t *Vid_Sampled, uint16_t *Vid_Mapped, int *Panel_Map_Local, int xx);
 
@@ -89,6 +94,8 @@ public:
 
   // for display conversion
   UMat_Type VideoSum_FU, VideoSum_FUX, VideoSum_FUY, VideoSum_U;
+
+  UMat_Type VideoSum_For_Output_FU;
 
   UMat_Type VideoSum_FUB, VideoSum_FUC, VideoSum_FUD, VideoSum_FUE, VideoSum_FUF;
 
@@ -157,12 +164,7 @@ public:
 
   Mat text_window;
 
-
-
   Mat Subsampled_Display_Small, Subsampled_Display_Large, VideoSum_16;
-
-
-
 
   int loc_x;
   int loc_y;
@@ -171,7 +173,7 @@ public:
 
   Prog_Durations time_test;
 
-    Prog_Durations New_Timer;
+  Prog_Durations New_Timer;
 
   void Load_Time(void);
   time_t time_time;
@@ -206,6 +208,39 @@ public:
   bool Video_On;
 
   bool D_Clock_Selected;
+
+
+  float Downstream_Gain;
+  float Start_Up_Gain;
+  float Final_Output_Gain;
+
+  float Sun_Gain;
+
+
+  int64_t Current_Sunrise, Current_Sunset;
+  bool DayTime, ColorTime;
+
+  /// Start_Day_Sequence
+  int64_t Day_Turn_On_Time;
+  int64_t Enable_Day_Turn_On_Time_Trigger;
+  int64_t Day_Turn_On_Time_Delayed;
+
+  int64_t Day_Hours_Turn_On, Day_Mins_Turn_On;
+  int64_t Day_Turn_On_Time_Total;
+
+  /// Start_Night_Sequence
+  int64_t Night_Turn_On_Time;
+  int64_t Enable_Night_Turn_On_Time_Trigger;
+  int64_t Night_Turn_On_Time_Delayed;
+
+  int64_t Night_Hours_Turn_On, Night_Mins_Turn_On;
+  int64_t Night_Turn_On_Time_Total;
+
+  std::string Sun_Info[53][12] = {};
+
+  int Sun_Dates_Times[12][5][3] = {}; // month  day sunrise sunset
+
+  int data_sets, dates;
 };
 
 #endif /* VIDEO_SCULPTURE_CLASS_H */

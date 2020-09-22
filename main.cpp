@@ -77,47 +77,48 @@ int main()
 
 
 
-    int64_t    Current_Sunrise, Current_Sunset ;
-    bool        DayTime, ColorTime;
-
-    float Sun_Gain;
-
-    /// Start_Day_Sequence
-    int64_t  Day_Turn_On_Time ;
-    int64_t  Enable_Day_Turn_On_Time_Trigger ;
-    int64_t  Day_Turn_On_Time_Delayed ;
-
-    int64_t  Day_Hours_Turn_On, Day_Mins_Turn_On;
-    int64_t  Day_Turn_On_Time_Total ;
 
 
-    /// Start_Night_Sequence
-    int64_t  Night_Turn_On_Time ;
-    int64_t  Enable_Night_Turn_On_Time_Trigger ;
-    int64_t  Night_Turn_On_Time_Delayed ;
+    // int64_t    Current_Sunrise, Current_Sunset ;
+    // bool        DayTime, ColorTime;
 
-    int64_t  Night_Hours_Turn_On, Night_Mins_Turn_On   ;
-    int64_t  Night_Turn_On_Time_Total ;
+    // float Sun_Gain;
 
+    // /// Start_Day_Sequence
+    // int64_t  Day_Turn_On_Time ;
+    // int64_t  Enable_Day_Turn_On_Time_Trigger ;
+    // int64_t  Day_Turn_On_Time_Delayed ;
 
-    std::string Sun_Info[53][12] = {};
-
-    int Sun_Dates_Times[12][5][3] = {};    // month  day sunrise sunset
-
-    int data_sets, dates;
-
-    dates  = Read_YAML_Data("../SF-Sunrise-Sunset.yml", Sun_Info   );
-
-     Convert_Sun_File(Sun_Info, Sun_Dates_Times);
-
-    for(int aa=0; aa<12; aa++)
-        for(int bb=0; bb<5; bb++)printf("%d  %d   %d  %d %d \n",aa, bb, Sun_Dates_Times[aa][bb][0], Sun_Dates_Times[aa][bb][1] , Sun_Dates_Times[aa][bb][2]  );
-
-  //   exit(0);
+    // int64_t  Day_Hours_Turn_On, Day_Mins_Turn_On;
+    // int64_t  Day_Turn_On_Time_Total ;
 
 
+    // /// Start_Night_Sequence
+    // int64_t  Night_Turn_On_Time ;
+    // int64_t  Enable_Night_Turn_On_Time_Trigger ;
+    // int64_t  Night_Turn_On_Time_Delayed ;
 
-  Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset );
+    // int64_t  Night_Hours_Turn_On, Night_Mins_Turn_On   ;
+    // int64_t  Night_Turn_On_Time_Total ;
+
+
+    // std::string Sun_Info[53][12] = {};
+
+    // int Sun_Dates_Times[12][5][3] = {};    // month  day sunrise sunset
+
+    // int data_sets, dates;
+
+    // dates  = Read_YAML_Data("../SF-Sunrise-Sunset.yml", Sun_Info   );
+
+    // Convert_Sun_File(Sun_Info, Sun_Dates_Times);
+
+    // for(int aa=0; aa<12; aa++)
+    //     for(int bb=0; bb<5; bb++)printf("%d  %d   %d  %d %d \n",aa, bb, Sun_Dates_Times[aa][bb][0], Sun_Dates_Times[aa][bb][1] , Sun_Dates_Times[aa][bb][2]  );
+
+    // exit(0);
+
+
+
 
   SC1.Read_Maps();
 
@@ -128,7 +129,7 @@ int main()
   {
     Process_Time.Start_Delay_Timer();
 
-    Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset );
+   //  Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset );
 
     FTX.FTDI_Rx(Bytes_Read);
 
@@ -174,7 +175,7 @@ int main()
         // NUC DELAY = 9.5 ms NUC
         Time_Delay_2.Start_Delay_Timer();             
         SC1.Mixer();
-        Time_Delay_2.End_Delay_Timer();           
+        Time_Delay_2.End_Delay_Timer();                   
 
 
       // NUC DELAY = .34 ms NUC
@@ -211,7 +212,6 @@ int main()
           cout << "    waitkey time: " << Time_Delay_3.time_delay;
 
           cout << "    frame#: " << loop;
-          cout << "    Sun_Gain: " <<  Sun_Gain  << std::endl ;
 
         }
         Time_Delay_1.Start_Delay_Timer();
@@ -240,7 +240,7 @@ int main()
         //   {
         //     SC1.display_on_X = !SC1.display_on_X;
         //   }        FTX.FTDI_Txx(); // TxBuffer, Bytes_Wrote)
-        SC1.Play_All();
+        // SC1.Play_All();
         // if (Finished)
         //   break;
 

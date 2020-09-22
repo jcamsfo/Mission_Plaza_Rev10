@@ -3,7 +3,7 @@
 #pragma once
 
 
- #define UMat_Enable ;
+ // #define UMat_Enable ;
 
 #ifdef UMat_Enable
 #define UMat_Type UMat
@@ -24,7 +24,7 @@
 // constexpr float Light_Sensor_Gain_Lower_Limit   =  .06 ;  // 6% at night
 
 constexpr float Sun_Gain_Upper_Limit   =  1.00 ;  // 90% on in the day time
-constexpr float Sun_Gain_Lower_Limit   =  .06 ;  // 6%
+constexpr float Sun_Gain_Lower_Limit   =  .1 ;  // 6%
 constexpr int   Sun_Time_Window_Seconds   =  1200 ;  // 1200 is 20 minutes
 
 

@@ -15,6 +15,7 @@
 #include "measure2.h"
 #include "process_other.h"
 #include "file_io_2.h"
+#include "misc.h"
 
 using namespace std::chrono;
 using namespace std;
@@ -137,7 +138,7 @@ Video_Sculpture::Video_Sculpture(void)
 
   display_on_X = true;
 
-  Video_On = false;
+  Video_On = true;
 
   local_oop = 0;
   Watch_Angle = 360;
@@ -161,6 +162,10 @@ Video_Sculpture::Video_Sculpture(void)
   Select_Auto = false;
   Watch_On = true;
   D_Clock_Selected = false;
+
+  Downstream_Gain = .2 ;
+  Start_Up_Gain = 0;
+
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -178,6 +183,15 @@ void Video_Sculpture::Read_Maps(void)
   Read_2D(Sample_Points_Map_V, "../../Maps/Mission_Plaza_Sample_Map.csv");
 
   Read_1D(Sculpture_Map, "../../Maps/Mission_Plaza_Sculpture_Map.csv");
+
+  dates  = Read_YAML_Data("../SF-Sunrise-Sunset.yml", Sun_Info   );
+
+  Convert_Sun_File(Sun_Info, Sun_Dates_Times);
+
+
+    for(int aa=0; aa<12; aa++)
+        for(int bb=0; bb<5; bb++)printf("%d  %d   %d  %d %d \n",aa, bb, Sun_Dates_Times[aa][bb][0], Sun_Dates_Times[aa][bb][1] , Sun_Dates_Times[aa][bb][2]  );
+  //  exit(0);
 
   // ignore the 1st line of descriptions
   // Read_2D_Ignore(Enclosure_Info, "../../Maps/Day_For_Night_Enclosure_Info.csv", 1);
@@ -288,6 +302,7 @@ inline void Video_Sculpture::Shrink_Object(UMat_Type &src, UMat_Type &src_alpha,
   resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
 }
 
+
 void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, int x, int y)
 {
 
@@ -308,11 +323,16 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0, LINE_AA);
   putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
 
+  putText(text_window, format("Downstream Gain %.2f   Sun_Gain  %.2f   Final_Output_Gain %.2f", Downstream_Gain, Sun_Gain, Final_Output_Gain), Point(10, 120), Font_Type, .4, Onnn, 0, LINE_AA);  
+
+
+
   // Scalar  	color,
   // 	int  	thickness = 1,
   // 	int  	lineType = LINE_8,
   // 	bool  	bottomLeftOrigin = false
   // )
+
 
   // LINE_AA
 
@@ -578,7 +598,22 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     //     Sequence_On = true; // start on 's'
     // }
 
-    if (Select_Controls == 0)
+      if (kp == '<')
+      {
+        Downstream_Gain -= .01;
+        if (Downstream_Gain < 0)
+          Downstream_Gain = 0;
+      }
+      else if (kp == '>')
+      {
+        Downstream_Gain += .01;
+        if (Downstream_Gain > 2)
+          Downstream_Gain= 1;
+      }
+
+
+
+    else if (Select_Controls == 0)
     {
 
       if (kp == ',')
@@ -745,6 +780,8 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 void Video_Sculpture::Play_All(void)
 {
 
+  Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset );
+
   // all of the other images are stills!!!!!!!!!!!!!!!!!!
   VP1x.Process();
 
@@ -880,6 +917,11 @@ void Video_Sculpture::Mixer(void)
   else
     Build_Watch(); // NUC 5 ms
 
+  // timing tester
+  // New_Timer.Start_Delay_Timer();
+  // New_Timer.End_Delay_Timer();
+  // cout << " New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;
+
   // check duration of Build
   // Watch_With_Both = VP2x.VideoProc_FU.clone();
 
@@ -933,12 +975,294 @@ void Video_Sculpture::Mixer(void)
   multiply(VP1x.VideoProc_FU, Alpha_Rotated_U, VideoSum_FUF);
   addWeighted(VideoSum_FUE, 1, VideoSum_FUF, 1, 0, VideoSum_FU);
 
-  New_Timer.Start_Delay_Timer();
-  New_Timer.End_Delay_Timer();
-  // cout << " New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;
-
   if (!Watch_On)
     VideoSum_FU = VP1x.VideoProc_FU.clone();
+
+  VideoSum_For_Output_FU = VideoSum_FU.clone();
+
+
+  Start_Up_Gain += .005;
+  if(Start_Up_Gain > 1)Start_Up_Gain = 1;
+  Final_Output_Gain = Downstream_Gain * Sun_Gain * Start_Up_Gain;
+
+  VideoSum_For_Output_FU *= Final_Output_Gain;
+
+
+}
+
+
+
+
+void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
+{
+  // .28 ms  
+  New_Timer.Start_Delay_Timer();
+  // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( );
+  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( VideoSum_For_Output_FU);  
+  New_Timer.End_Delay_Timer();
+  cout << endl  << "    New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;  
+
+
+  // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( VideoSum_For_Output_FU);  
+
+  // .065 ms
+  Map_Subsampled_To_Sculpture();
+
+  // .15 ms
+  Generate_Subsampled_Image_For_Test();
+
+
+
+  
+}
+
+
+
+// this was the fastet way that I measured
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void)
+{
+ //  time_test.Start_Delay_Timer();
+  int xx_arr, yy_arr, yy, xx;
+  int inc = 0;
+  uint16_t rz, gz, bz, wz, Sub_Valz;
+  int i;
+
+  Pixel_Type_F Pixel_Vec;
+
+#ifdef UMat_Enable
+  VideoSum_For_Output_FU.copyTo(VideoSum_F);
+  VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256); // this does the clipping for you !!!
+#else
+  VideoSum_For_Output_FU.convertTo(VideoSum_16, CV_16UC3, 256);
+#endif
+
+  i = 0;
+
+  if (Video_On)
+  {
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+    {
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        xx = Sample_Points_Map_V[yy_arr][xx_arr];
+        Pixel_Vec = VideoSum_16.at<Pixel_Type_16>(yy, xx);
+
+        rz = Pixel_Vec[2];
+        gz = Pixel_Vec[1];
+        bz = Pixel_Vec[0];
+
+        Sub_Valz = std::min({rz, gz, bz});
+
+        Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = Sub_Valz;
+      }
+    }
+  }
+
+  else
+  {
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+    {
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+      }
+    }
+  }
+
+//  time_test.End_Delay_Timer();
+  // cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
+}
+
+
+// this was the fastet way that I measured
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type &Vid_Src)
+{
+ //  time_test.Start_Delay_Timer();
+  int xx_arr, yy_arr, yy, xx;
+  int inc = 0;
+  uint16_t rz, gz, bz, wz, Sub_Valz;
+  int i;
+
+  Pixel_Type_F Pixel_Vec;
+
+#ifdef UMat_Enable
+  Vid_Src.copyTo(VideoSum_F);
+  VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256); // this does the clipping for you !!!
+#else
+  Vid_Src.convertTo(VideoSum_16, CV_16UC3, 256);
+#endif
+
+  i = 0;
+
+  if (Video_On)
+  {
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+    {
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        xx = Sample_Points_Map_V[yy_arr][xx_arr];
+        Pixel_Vec = VideoSum_16.at<Pixel_Type_16>(yy, xx);
+
+        rz = Pixel_Vec[2];
+        gz = Pixel_Vec[1];
+        bz = Pixel_Vec[0];
+
+        Sub_Valz = std::min({rz, gz, bz});
+
+        Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
+        Sampled_Buffer_RGBW[i++] = Sub_Valz;
+      }
+    }
+  }
+
+  else
+  {
+    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
+    {
+      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
+      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+      {
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+        Sampled_Buffer_RGBW[i++] = 0;
+      }
+    }
+  }
+
+//  time_test.End_Delay_Timer();
+  // cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
+}
+
+
+
+
+
+// formerly known as Panel_Mapper
+// maps the image sub samples to the panel using the panel map
+void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
+{
+  for (int ii = 0; ii < Sculpture_Size_Pixels; ii++)
+  {
+    int iixx = Words_Per_Pixel * ii;
+    int Panel_MapxX = Words_Per_Pixel * Sculpture_Map[ii];
+    for (int jj = 0; jj < Words_Per_Pixel; jj++)
+      Samples_Mapped_To_Sculpture[Panel_MapxX + jj] = Sampled_Buffer_RGBW[iixx + jj];
+  }
+}
+
+// just started
+void Video_Sculpture::Generate_Subsampled_Image_For_Test(void)
+{
+
+  static uchar r, g, b, w;
+  static int i, o;
+
+  int inc;
+  i = 0;
+  o = 0;
+
+  for (inc = 0; inc < 3600; inc++)
+  {
+    r = Sampled_Buffer_RGBW[i++] / 256;
+    g = Sampled_Buffer_RGBW[i++] / 256;
+    b = Sampled_Buffer_RGBW[i++] / 256;
+    w = Sampled_Buffer_RGBW[i++] / 256;
+
+    r = r + w;
+    g = g + w;
+    b = b + w;
+
+    Sampled_Buffer_RGB[o++] = b;
+    Sampled_Buffer_RGB[o++] = g;
+    Sampled_Buffer_RGB[o++] = r;
+  }
+
+  std::memcpy(Subsampled_Display_Small.data, Sampled_Buffer_RGB, 50 * 72 * 3 * sizeof(uchar));
+
+  // imshow("ouput", Subsampled_Display_Small);
+
+  resize(Subsampled_Display_Small, Subsampled_Display_Large, Size(), 5, 5, INTER_LINEAR);
+}
+
+void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src) // , int Display_Type)
+{
+
+  int Display_Type = 1;
+
+  int xx_arr, yy_arr;
+  int rowsY = src.rows;
+  int colsX = src.cols;
+  Pixel_Type Pixel_Vec;
+  Vec3s vv;
+
+  time_test.Start_Delay_Timer();
+
+  for (int yy = 2; (yy < rowsY); yy += V_SAMPLE_SPREAD)
+  {
+    xx_arr = 0;
+    yy_arr = (yy - 2) >> 2;
+    for (int xx = 0; (xx < colsX); xx++)
+    {
+      if ((yy_arr < Sample_Points_Map_V.size()) && (xx_arr < Sample_Points_Map_V[yy_arr].size()))
+        if (Sample_Points_Map_V[yy_arr][xx_arr] == xx)
+        {
+          Pixel_Vec = src.at<Vec3b>(Point(xx, yy));
+          uint8_t R0 = (Pixel_Vec[0] <= 100) ? Pixel_Vec[0] + 100 : 0;
+          uint8_t G0 = (Pixel_Vec[1] <= 100) ? Pixel_Vec[1] + 100 : 0;
+          uint8_t B0 = (Pixel_Vec[2] <= 100) ? Pixel_Vec[2] + 100 : 0;
+
+          if (Display_Type == 1)
+            src.at<Vec3b>(Point(xx, yy)) = {0, 0, 0};
+          else
+            src.at<Vec3b>(Point(xx, yy)) = {R0, G0, B0};
+          xx_arr++;
+        }
+    }
+  }
+
+  time_test.End_Delay_Timer();
+  cout << " lower " << time_test.time_delay << endl;
+}
+
+
+void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src)
+{
+  int xx_arr, yy_arr, yy, xx;
+  Pixel_Type Pixel_Vec;
+
+  time_test.Start_Delay_Timer();
+  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
+  {
+    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
+    for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
+    {
+      xx = Sample_Points_Map_V[yy_arr][xx_arr];
+
+      Pixel_Vec = src.at<Vec3b>(Point(xx, yy));
+      // uint8_t R0 = (Pixel_Vec[0] <= 100) ? Pixel_Vec[0] + 100 : 0;
+      // uint8_t G0 = (Pixel_Vec[1] <= 100) ? Pixel_Vec[1] + 100 : 0;
+      // uint8_t B0 = (Pixel_Vec[2] <= 100) ? Pixel_Vec[2] + 100 : 0;
+      uint8_t R0 = Pixel_Vec[0] + 100;
+      uint8_t G0 = Pixel_Vec[1] + 100;
+      uint8_t B0 = Pixel_Vec[2] + 100;
+
+      src.at<Vec3b>(Point(xx, yy)) = {R0, G0, B0};
+    }
+  }
+  time_test.End_Delay_Timer();
+  cout << " lower2 " << time_test.time_delay << endl;
 }
 
 void Video_Sculpture::Display(void)
@@ -959,12 +1283,13 @@ void Video_Sculpture::Display(void)
 
   Display_Text_Mat("values", text_window, 50, 50);
 
+  imshow("ouput", Subsampled_Display_Large);
+
   if (display_on_X)
   {
     imshow("1", VP1x.VideoDisplay);
     imshow("2", VP2x.VideoDisplay);
     imshow("3", VP3x.VideoDisplay);
-    imshow("ouput", Subsampled_Display_Large);
   }
   else
   {
@@ -974,19 +1299,9 @@ void Video_Sculpture::Display(void)
       destroyWindow("2");
     if (cv::getWindowProperty("3", WND_PROP_AUTOSIZE) != -1)
       destroyWindow("3");
-    if (cv::getWindowProperty("output", WND_PROP_AUTOSIZE) != -1)
-      destroyWindow("output");
-  }
-}
-
-void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
-{
-  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8();
-  // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev5();
-
-  Map_Subsampled_To_Sculpture();
-
-  Generate_Subsampled_Image_For_Test();
+  //   if (cv::getWindowProperty("output", WND_PROP_AUTOSIZE) != -1)
+  //     destroyWindow("output");
+ }
 }
 
 // this was the fastet way that I measured
@@ -1075,192 +1390,6 @@ void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 //   time_test.End_Delay_Timer();
 //   cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 // }
-
-// this was the fastet way that I measured
-void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void)
-{
-  time_test.Start_Delay_Timer();
-  int xx_arr, yy_arr, yy, xx;
-  int inc = 0;
-  uint16_t rz, gz, bz, wz, Sub_Valz;
-  int i;
-
-  Pixel_Type_F Pixel_Vec;
-
-#ifdef UMat_Enable
-  VideoSum_FU.copyTo(VideoSum_F);
-  VideoSum_F.convertTo(VideoSum_16, CV_16UC3, 256); // this does the clipping for you !!!
-#else
-  VideoSum_FU.convertTo(VideoSum_16, CV_16UC3, 256);
-#endif
-
-  i = 0;
-
-  if (Video_On)
-  {
-    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
-    {
-      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
-      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
-      {
-        xx = Sample_Points_Map_V[yy_arr][xx_arr];
-        Pixel_Vec = VideoSum_16.at<Pixel_Type_16>(yy, xx);
-
-        rz = Pixel_Vec[2];
-        gz = Pixel_Vec[1];
-        bz = Pixel_Vec[0];
-
-        Sub_Valz = std::min({rz, gz, bz});
-
-        Sampled_Buffer_RGBW[i++] = rz - Sub_Valz;
-        Sampled_Buffer_RGBW[i++] = gz - Sub_Valz;
-        Sampled_Buffer_RGBW[i++] = bz - Sub_Valz;
-        Sampled_Buffer_RGBW[i++] = Sub_Valz;
-      }
-    }
-  }
-
-  else
-  {
-    for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) //
-    {
-      yy = 2 + (V_SAMPLE_SPREAD * yy_arr); //
-      for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
-      {
-        Sampled_Buffer_RGBW[i++] = 0;
-        Sampled_Buffer_RGBW[i++] = 0;
-        Sampled_Buffer_RGBW[i++] = 0;
-        Sampled_Buffer_RGBW[i++] = 0;
-      }
-    }
-  }
-
-  time_test.End_Delay_Timer();
-  cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
-}
-
-// formerly known as Panel_Mapper
-// maps the image sub samples to the panel using the panel map
-void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
-{
-  for (int ii = 0; ii < Sculpture_Size_Pixels; ii++)
-  {
-    int iixx = Words_Per_Pixel * ii;
-    int Panel_MapxX = Words_Per_Pixel * Sculpture_Map[ii];
-    for (int jj = 0; jj < Words_Per_Pixel; jj++)
-      Samples_Mapped_To_Sculpture[Panel_MapxX + jj] = Sampled_Buffer_RGBW[iixx + jj];
-  }
-}
-
-// just started
-void Video_Sculpture::Generate_Subsampled_Image_For_Test(void)
-{
-
-  static uchar r, g, b, w;
-  static int i, o;
-
-  int inc;
-  i = 0;
-  o = 0;
-
-  for (inc = 0; inc < 3600; inc++)
-  {
-    r = Sampled_Buffer_RGBW[i++] / 256;
-    g = Sampled_Buffer_RGBW[i++] / 256;
-    b = Sampled_Buffer_RGBW[i++] / 256;
-    w = Sampled_Buffer_RGBW[i++] / 256;
-
-    r = r + w;
-    g = g + w;
-    b = b + w;
-
-    Sampled_Buffer_RGB[o++] = b;
-    Sampled_Buffer_RGB[o++] = g;
-    Sampled_Buffer_RGB[o++] = r;
-  }
-
-  std::memcpy(Subsampled_Display_Small.data, Sampled_Buffer_RGB, 50 * 72 * 3 * sizeof(uchar));
-
-  // imshow("ouput", Subsampled_Display_Small);
-
-  resize(Subsampled_Display_Small, Subsampled_Display_Large, Size(), 5, 5, INTER_LINEAR);
-}
-
-//   resize(Watch_With_Both, VideoSum_Resized_FU, Size(), scale_factor_h, scale_factor_v, INTER_LINEAR);
-
-// for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
-// {
-//   yy = 2 + (4 * yy_arr); // up to 280
-//   for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
-
-// void Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src, int SP[SAMPLE_ROWS][SAMPLE_COLS], int Num_Of_Samples_Per_Row[SAMPLE_ROWS], int Display_Type)
-void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src) // , int Display_Type)
-{
-
-  int Display_Type = 1;
-
-  int xx_arr, yy_arr;
-  int rowsY = src.rows;
-  int colsX = src.cols;
-  Pixel_Type Pixel_Vec;
-  Vec3s vv;
-
-  time_test.Start_Delay_Timer();
-
-  for (int yy = 2; (yy < rowsY); yy += V_SAMPLE_SPREAD)
-  {
-    xx_arr = 0;
-    yy_arr = (yy - 2) >> 2;
-    for (int xx = 0; (xx < colsX); xx++)
-    {
-      if ((yy_arr < Sample_Points_Map_V.size()) && (xx_arr < Sample_Points_Map_V[yy_arr].size()))
-        if (Sample_Points_Map_V[yy_arr][xx_arr] == xx)
-        {
-          Pixel_Vec = src.at<Vec3b>(Point(xx, yy));
-          uint8_t R0 = (Pixel_Vec[0] <= 100) ? Pixel_Vec[0] + 100 : 0;
-          uint8_t G0 = (Pixel_Vec[1] <= 100) ? Pixel_Vec[1] + 100 : 0;
-          uint8_t B0 = (Pixel_Vec[2] <= 100) ? Pixel_Vec[2] + 100 : 0;
-
-          if (Display_Type == 1)
-            src.at<Vec3b>(Point(xx, yy)) = {0, 0, 0};
-          else
-            src.at<Vec3b>(Point(xx, yy)) = {R0, G0, B0};
-          xx_arr++;
-        }
-    }
-  }
-
-  time_test.End_Delay_Timer();
-  cout << " lower " << time_test.time_delay << endl;
-}
-
-void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src)
-{
-  int xx_arr, yy_arr, yy, xx;
-  Pixel_Type Pixel_Vec;
-
-  time_test.Start_Delay_Timer();
-  for (yy_arr = 0; (yy_arr < Sample_Points_Map_V.size()); yy_arr++) // up to 67
-  {
-    yy = 2 + (V_SAMPLE_SPREAD * yy_arr); // up to 280
-    for (xx_arr = 0; xx_arr < Sample_Points_Map_V[yy_arr].size(); xx_arr++)
-    {
-      xx = Sample_Points_Map_V[yy_arr][xx_arr];
-
-      Pixel_Vec = src.at<Vec3b>(Point(xx, yy));
-      // uint8_t R0 = (Pixel_Vec[0] <= 100) ? Pixel_Vec[0] + 100 : 0;
-      // uint8_t G0 = (Pixel_Vec[1] <= 100) ? Pixel_Vec[1] + 100 : 0;
-      // uint8_t B0 = (Pixel_Vec[2] <= 100) ? Pixel_Vec[2] + 100 : 0;
-      uint8_t R0 = Pixel_Vec[0] + 100;
-      uint8_t G0 = Pixel_Vec[1] + 100;
-      uint8_t B0 = Pixel_Vec[2] + 100;
-
-      src.at<Vec3b>(Point(xx, yy)) = {R0, G0, B0};
-    }
-  }
-  time_test.End_Delay_Timer();
-  cout << " lower2 " << time_test.time_delay << endl;
-}
 
 // this was the fastet way that I measured
 // HAD OVERFLOW PROBLEM !!!!!!!!!!!!!!!!!!!!!!!!1

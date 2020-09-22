@@ -60,6 +60,7 @@ public:
   void AlphaSetupNoProcess(string File_Name, string NameX);       
 
 
+
   bool Movie_Or_Still;
 
   void Process(void);
