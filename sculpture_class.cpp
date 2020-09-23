@@ -156,12 +156,15 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_H_Size_Inc = .01;
   Watch_V_Size_Inc = .01;
   Watch_H_Location = 0;
+  Watch_H_Location_F = 0;
+
   Fade_V_Location = 50;
 
   Watch_V_Location_Inc = .25;
 
   Watch_V_Location = -100;
-  Watch_H_Location_Inc = 1;
+
+  Watch_H_Location_Inc_F = 1;  
 
   Watch_H_Size_Begin = .35;
   Watch_H_Size_End = .95;
@@ -331,7 +334,7 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   putText(text_window, format("Water Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  Video On %d", VP1x.Gain, VP1x.Color_Gain, VP1x.Black_Level, VP1x.Image_Gamma, Video_On), Point(10, 20), Font_Type, .4, Water_Color, 0, LINE_AA);
 
   putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0, LINE_AA);
-  putText(text_window, format("H Speed %d  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
+  putText(text_window, format("H Speed %.2f  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc_F, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
 
   putText(text_window, format("Downstream Gain %.2f   Sun_Gain  %.2f   Final_Output_Gain %.2f", Downstream_Gain, Sun_Gain, Final_Output_Gain), Point(10, 120), Font_Type, .4, Onnn, 0, LINE_AA);  
 
@@ -777,14 +780,18 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         VP2x.Process();
       }
 
-      if ((kp == 'g') && (Watch_H_Location_Inc >= 1))
+
+      if (kp == 'g') 
       {
-        Watch_H_Location_Inc--;
+        Watch_H_Location_Inc_F -= .1;
+        if(Watch_H_Location_Inc_F < 0)Watch_H_Location_Inc_F = 0 ;
       }
-      else if ((kp == 'h') && (Watch_H_Location_Inc <= 5))
+      else if (kp == 'h')
       {
-        Watch_H_Location_Inc++;
+        Watch_H_Location_Inc_F += .1;
+        if(Watch_H_Location_Inc_F > 5.)Watch_H_Location_Inc_F = 5. ;
       }
+
 
       if ((kp == 'c') && (Watch_V_Location_Inc >= .05))
       {
@@ -942,7 +949,13 @@ void Video_Sculpture::Mixer(void)
   // Watch_Angle = 5;
 
   // wraps automatically
-  Watch_H_Location += Watch_H_Location_Inc;
+  // Watch_H_Location += Watch_H_Location_Inc;
+
+
+  Watch_H_Location_F += Watch_H_Location_Inc_F;  
+
+  Watch_H_Location = (int)( Watch_H_Location_F + .5);
+
   // Watch_H_Location = 0;
 
   // Fade_V_Location = 68;

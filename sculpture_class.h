@@ -188,14 +188,21 @@ public:
   float Watch_H_Size;
   float Watch_V_Size;
   float Watch_Angle;
+
   uint64_t Watch_H_Location;
+  float    Watch_H_Location_F;
+
   float Watch_V_Location;
   uint64_t Fade_V_Location;
 
   float Watch_Angle_Inc;
   float Watch_H_Size_Inc;
   float Watch_V_Size_Inc;
-  int Watch_H_Location_Inc;
+  
+  // int Watch_H_Location_Inc;
+
+  float Watch_H_Location_Inc_F;
+
   float Watch_V_Location_Inc;
 
   float Watch_H_Size_Begin;
