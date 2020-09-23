@@ -160,15 +160,15 @@ int main()
 
 
         // no threading version          // NUC DELAY = 1.8 ms 
-        // FTX.FTDI_Txx(); // .8 ms
-        // SC1.Play_All(); // 1.3 ms             
+        FTX.FTDI_Txx(); // .8 ms
+        SC1.Play_All(); // 1.3 ms             
 
 
         // threading version     // NUC DELAY = 2 ms
-        std::thread t1(&Video_Sculpture::Play_All, &SC1);
-        std::thread t2(&USB_FTDI_Channel::FTDI_Txx, &FTX);
-        t1.join();
-        t2.join();
+        // std::thread t1(&Video_Sculpture::Play_All, &SC1);
+        // std::thread t2(&USB_FTDI_Channel::FTDI_Txx, &FTX);
+        // t1.join();
+        // t2.join();
 
 
 

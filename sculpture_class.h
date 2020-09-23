@@ -46,7 +46,7 @@ public:
   vector<vector<int>> Enclosure_Info;
 
   // these 2 used to Sample the image pixels using the the Sample_Points_Map
-  uint16_t *Sampled_Buffer_RGBW;
+  uint16_t *Sampled_Buffer_RGBW, *Sampled_Buffer_RGBW_View;
   uchar *Sampled_Buffer_RGB;
   float *Sampled_Buffer_RGBW_AF;
 
@@ -63,6 +63,8 @@ public:
   
 
   void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type & Video_In);
+
+  void Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type &Vid_Src, uint16_t *RGBW_Array  );
 
 
 
@@ -209,6 +211,10 @@ public:
 
   bool D_Clock_Selected;
 
+
+
+
+bool Bypass_Output_Gain;
 
   float Downstream_Gain;
   float Start_Up_Gain;
