@@ -54,8 +54,10 @@ public:
   void setup(string File_Name, string NameX, bool Movie_Or_Still);
 
   void VideoSetup(string File_Name, string NameX);
+  void VideoSetup(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In);
   void StillSetup(string File_Name, string NameX);   
-  void StillSetupWithAlpha(string File_Name, string NameX);    
+  void StillSetupWithAlpha(string File_Name, string NameX);  
+  void StillSetupWithAlpha(string File_Name, string NameX,  float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In);  
 
   void AlphaSetupNoProcess(string File_Name, string NameX);       
 

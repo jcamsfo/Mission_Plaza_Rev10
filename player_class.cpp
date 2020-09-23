@@ -152,6 +152,56 @@ void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
   Image_Gamma = 0;
 };
 
+
+void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
+{
+
+  Movie_Or_Still = 1;
+
+  capMain.open(File_Name);
+  ImageWidth = capMain.get(CAP_PROP_FRAME_WIDTH);
+  ImageHeight = capMain.get(CAP_PROP_FRAME_HEIGHT);
+  ImageDuration = capMain.get(cv::CAP_PROP_FRAME_COUNT);
+
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
+  // CREATES NOT NEEDED
+  // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_FU.create(ImageHeight, ImageWidth, CV_32FC(3));
+  // VideoDisplay.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoProc_FU.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Color_Difference_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
+  // VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+
+  Ones_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat = cv::Scalar(1.0, 1.0, 1.0);
+
+  Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
+
+  player_pause = false;
+
+  display_name = NameX;
+
+  Ones2x2_A = false;
+  Ones3x3_A = true;
+  Ones4x4_A = false;
+  Ones5x5_A = true;
+  Ones6x6_A = false;
+  Ones7x7_A = false;
+
+  Gain = Gain_In;
+  Black_Level = Black_Level_In;
+  Color_Gain = Color_Gain_In;
+
+  // figure out where to put this as it's for the building not so much for the picture
+  // like color correction
+  Image_Gamma = Gamma_In;
+};
+
+
+
 void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
 {
 
@@ -333,6 +383,104 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   Process();
   AlphaProcess();
 };
+
+
+// rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
+void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string NameX,  float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
+{
+
+  Movie_Or_Still = 0;
+
+  VideoMainAlpha = imread(File_Name, IMREAD_UNCHANGED);
+  ImageWidth = VideoMainAlpha.cols;
+  ImageHeight = VideoMainAlpha.rows;
+  ImageChannels = VideoMainAlpha.channels();
+  ImageDuration = 1;
+
+  Ones_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat = cv::Scalar(1.0, 1.0, 1.0);
+
+  Ones_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Ones_Float_Mat_U = cv::Scalar(1.0, 1.0, 1.0);
+
+  Zeros_Float_Mat.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat = cv::Scalar(0.0, 0.0, 0.0);
+
+  Zeros_Float_Mat_U.create(ImageHeight, ImageWidth, CV_32FC(3));
+  Zeros_Float_Mat_U = cv::Scalar(0.0, 0.0, 0.0);
+
+  // split to BGR and Alpha
+  split(VideoMainAlpha, VideoChannels4);
+
+  // merge the 1st 3 channels of the 4 channel input
+  VideoChannels4[0].copyTo(VideoChannels3[0]);
+  VideoChannels4[1].copyTo(VideoChannels3[1]);
+  VideoChannels4[2].copyTo(VideoChannels3[2]);
+  merge(VideoChannels3, 3, VideoMain);
+
+  // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
+
+  // convert alpha channel to floating point 3 channel  0 - 1
+  // this takes the 0 -> 255 and inverts it and scales it to  1 -> 0
+  VideoChannels4[3].convertTo(Alpha_Channel_F1, CV_32F, -.0039216, 1);
+  // creata 3 channel from a 1 channel
+  cv::Mat temp[] = {Alpha_Channel_F1, Alpha_Channel_F1, Alpha_Channel_F1};
+  merge(temp, 3, Alpha_Channel_F);
+
+#ifdef UMat_Enable
+  Alpha_Channel_F.copyTo(Alpha_Channel_FU);
+#else
+  Alpha_Channel_FU = Alpha_Channel_F;
+#endif
+
+  subtract(Ones_Float_Mat, Alpha_Channel_F, Alpha_Channel_Inv_F);
+
+#ifdef UMat_Enable
+  Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+#else
+  Alpha_Channel_Inv_FU = Alpha_Channel_Inv_F;
+#endif
+
+  // to view the appha channel
+  // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
+
+  // CODING KEY:   F -> float type (vs unsigned char)     U ->  UMat_Type (vs Mat)
+  // CREATES NOT NEEDED
+  // VideoMain.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_U.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoMain_FU.create(ImageHeight, ImageWidth, CV_32FC(3));
+  // VideoDisplay.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // VideoProc_FU.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Color_Difference_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+  // Y_FU1.create(ImageHeight, ImageWidth, CV_8UC(1));
+  // VideoTemp_FU3.create(ImageHeight, ImageWidth, CV_8UC(3));
+
+  player_pause = false;
+
+  display_name = NameX;
+
+  Ones2x2_A = false;
+  Ones3x3_A = true;
+  Ones4x4_A = false;
+  Ones5x5_A = true;
+  Ones6x6_A = false;
+  Ones7x7_A = false;
+
+  Gain = Gain_In;
+  Black_Level = Black_Level_In;
+  Color_Gain = Color_Gain_In;
+
+  // figure out where to put this as it's for the building not so much for the picture
+  // like color correction
+  Image_Gamma = Gamma_In;
+
+  Process();
+  AlphaProcess();
+};
+
+
+
+
 
 // rev2 only processes the still images once. To add LIVE color correction I need to detect a change in parameters
 void Video_Player_With_Processing::AlphaSetupNoProcess(string File_Name, string NameX)

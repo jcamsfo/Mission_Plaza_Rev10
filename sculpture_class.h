@@ -206,6 +206,8 @@ public:
 
   float Watch_V_Location_Inc;
 
+  int Watch_Loop_Timer;
+
   float Watch_H_Size_Begin;
   float Watch_H_Size_End;
 

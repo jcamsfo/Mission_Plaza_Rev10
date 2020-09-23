@@ -112,9 +112,15 @@ Video_Sculpture::Video_Sculpture(void)
   // VP2x.VideoSetup("../../Movies/comp4_264.mov", "1");
   // VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
 
-  VP1x.VideoSetup("../../Movies/wrxz100.mov", "0");
+// VideoSetup(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
+  VP1x.VideoSetup("../../Movies/wrxz100.mov", "0", 1, -.5, 1, .5);
+
+  // VP1x.VideoSetup("../../Movies/wrxz100.mov", "0");
   //VP2x.StillSetupRev2("../../Movies/watch_SM.tif", "1");
-  VP2x.StillSetupWithAlpha("../../Movies/wtc3s.tif", "1");
+
+  // StillSetupWithAlpha(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
+  VP2x.StillSetupWithAlpha("../../Movies/wtc3s.tif", "1", 1, -.5, 1, .5);
+
   VP3x.StillSetupWithAlpha("../../Movies/smallhand.tif", "2");
   VP4x.StillSetupWithAlpha("../../Movies/bighand.tif", "3");
 
@@ -160,6 +166,8 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_V_Location_Inc = .25;
 
   Watch_V_Location = -100;
+
+  Watch_Loop_Timer = 0;
 
   Watch_H_Location_Inc_F = .5;
 
@@ -904,7 +912,20 @@ void Video_Sculpture::Mixer(void)
 
   Watch_V_Location += Watch_V_Location_Inc;
   if (Watch_V_Location >= 200)
-    Watch_V_Location = -200;
+  {
+    Watch_Loop_Timer++;
+    Watch_V_Location = 200;
+  }
+
+   if(Watch_Loop_Timer >= 200)  // in frames  210 = 7 seconds
+   {
+     Watch_V_Location = -200;
+     Watch_Loop_Timer = 0;
+   }
+  // if (Watch_V_Location >= 200)
+  //   Watch_V_Location = -200;
+
+  // Watch_Loop_Timer
 
   // Watch_V_Location = 0;
 
@@ -977,21 +998,11 @@ void Video_Sculpture::Mixer(void)
   // multiply the 2 alphas the watch alpha and the fade alpha  // NUC .12 ms
   multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Combined_Alpha_Fade_FU);
 
-
-
   // multiply(Watch_With_Both, Combined_Alpha_Fade_FU, Watch_With_Both_Faded_U);
-
-
-
-
-
-
 
   // this shrinks the watch and its alpha , but puts them back in a full size Mat
   // NUC  .54 ms
-  Shrink_Object(Watch_With_Both, Combined_Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);  
-
-
+  Shrink_Object(Watch_With_Both, Combined_Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);
 
   //  useful for isolating the scaling problem
   // UMat_Type Mat_Temp;
@@ -1008,39 +1019,28 @@ void Video_Sculpture::Mixer(void)
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Watch_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Watch_Angle);
 
-
-
   // this moves the watch and its alpha horizontally and vertically (works out of frame also)  // NUC .5 ms for both
   Shift_Image_Horizontal_Vertical_U3(VideoSum_FUE, Watch_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
   Shift_Image_Horizontal_Vertical_U3(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
 
-
-// add the fade into the water
+  // add the fade into the water
   // NUC .22 ms
   Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_Sinking_FU, 100, VP2x.Ones_Float_Mat_U);
-  multiply(Alpha_Fade_Shifted_Sinking_FU, Watch_Alpha_Shifted_FU, Watch_Alpha_Shifted_FU_2);  
-
+  multiply(Alpha_Fade_Shifted_Sinking_FU, Watch_Alpha_Shifted_FU, Watch_Alpha_Shifted_FU_2);
 
   // generate the final watch matted image  // NUC .12 ms
   multiply(Watch_Shifted_FU, Watch_Alpha_Shifted_FU_2, Watch_With_Both_Faded_U);
 
-
-
-
-
   //   AP1x.Alpha_Channel_FU.convertTo(DisplayTemp, CV_8U,255);
   // imshow("17", DisplayTemp);
-
-
-
 
   // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges   // 1.3 ms for all
   blur(Watch_With_Both_Faded_U, VideoSum_FUE, Size(3, 3));
   blur(VideoSum_FUE, VideoSum_FUE, Size(5, 5));
-  blur(VideoSum_FUE, VideoSum_FUE, Size(7, 7));  
+  blur(VideoSum_FUE, VideoSum_FUE, Size(7, 7));
   blur(Watch_Alpha_Shifted_FU_2, Alpha_Rotated_U, Size(3, 3));
   blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
-  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(7, 7));  
+  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(7, 7));
 
   //  create the inverted alpha for the background  // NUC  .075 ms
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);
