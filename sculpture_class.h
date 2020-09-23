@@ -131,6 +131,7 @@ public:
   UMat_Type Alpha_Fade_Cloned_FU;
 
   UMat_Type Watch_Shifted_FU, Watch_Alpha_Shifted_FU;
+  UMat_Type Watch_Alpha_Shifted_FU_2, Alpha_Fade_Shifted_Sinking_FU;
 
   UMat_Type Watch_Image;
   UMat_Type Watch_Alpha;

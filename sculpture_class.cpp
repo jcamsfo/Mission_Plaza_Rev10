@@ -161,13 +161,13 @@ Video_Sculpture::Video_Sculpture(void)
 
   Watch_V_Location = -100;
 
-  Watch_H_Location_Inc_F = 1;
+  Watch_H_Location_Inc_F = .5;
 
-  Watch_H_Size_Begin = .35;
-  Watch_H_Size_End = .95;
+  Watch_H_Size_Begin = .5;
+  Watch_H_Size_End = 1;
 
   Select_Controls = 0;
-  Select_Auto = false;
+  Select_Auto = true;
   Watch_On = true;
   D_Clock_Selected = false;
 
@@ -978,17 +978,18 @@ void Video_Sculpture::Mixer(void)
   multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Combined_Alpha_Fade_FU);
 
 
-  // generate the final watch matted image  // NUC .12 ms
-  multiply(Watch_With_Both, Combined_Alpha_Fade_FU, Watch_With_Both_Faded_U);
+
+  // multiply(Watch_With_Both, Combined_Alpha_Fade_FU, Watch_With_Both_Faded_U);
 
 
-  //   Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U,10000000);
-  // imshow("17", DisplayTemp);
+
+
+
 
 
   // this shrinks the watch and its alpha , but puts them back in a full size Mat
   // NUC  .54 ms
-  Shrink_Object(Watch_With_Both_Faded_U, Combined_Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);  
+  Shrink_Object(Watch_With_Both, Combined_Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);  
 
 
 
@@ -1013,11 +1014,33 @@ void Video_Sculpture::Mixer(void)
   Shift_Image_Horizontal_Vertical_U3(VideoSum_FUE, Watch_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
   Shift_Image_Horizontal_Vertical_U3(Alpha_Rotated_U, Watch_Alpha_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
 
+
+// add the fade into the water
+  // NUC .22 ms
+  Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_Sinking_FU, 100, VP2x.Ones_Float_Mat_U);
+  multiply(Alpha_Fade_Shifted_Sinking_FU, Watch_Alpha_Shifted_FU, Watch_Alpha_Shifted_FU_2);  
+
+
+  // generate the final watch matted image  // NUC .12 ms
+  multiply(Watch_Shifted_FU, Watch_Alpha_Shifted_FU_2, Watch_With_Both_Faded_U);
+
+
+
+
+
+  //   AP1x.Alpha_Channel_FU.convertTo(DisplayTemp, CV_8U,255);
+  // imshow("17", DisplayTemp);
+
+
+
+
   // filters the shrunk watch and alpha  this needs to be done because shrinking the image creates sharper edges   // 1.3 ms for all
-  blur(Watch_Shifted_FU, VideoSum_FUE, Size(3, 3));
+  blur(Watch_With_Both_Faded_U, VideoSum_FUE, Size(3, 3));
   blur(VideoSum_FUE, VideoSum_FUE, Size(5, 5));
-  blur(Watch_Alpha_Shifted_FU, Alpha_Rotated_U, Size(3, 3));
+  blur(VideoSum_FUE, VideoSum_FUE, Size(7, 7));  
+  blur(Watch_Alpha_Shifted_FU_2, Alpha_Rotated_U, Size(3, 3));
   blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(5, 5));
+  blur(Alpha_Rotated_U, Alpha_Rotated_U, Size(7, 7));  
 
   //  create the inverted alpha for the background  // NUC  .075 ms
   subtract(VP2x.Ones_Float_Mat_U, Alpha_Rotated_U, Alpha_Rotated_U);

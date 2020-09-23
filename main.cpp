@@ -197,16 +197,16 @@ int main()
           // if (Time_Delay_1.time_delay > 8)
           //   cout << "   " << Time_Delay_1.time_delay_max << "             ";
           cout << "   Loop_Time cur/avg/max/min: " << std::setprecision(2) << setw(4) << Time_Delay_1.time_delay;
-          cout << " " << std::setprecision(2) << setw(4) << Time_Delay_1.time_delay_avg;
-          cout << " " << std::setprecision(2) << setw(4) << Time_Delay_1.time_delay_max;
-          cout << " " << std::setprecision(2) << setw(4) << Time_Delay_1.time_delay_min;
+          cout << " " << std::setprecision(2) << setw(2) << Time_Delay_1.time_delay_avg;
+          cout << " " << std::setprecision(2) << setw(2) << Time_Delay_1.time_delay_max;
+          cout << " " << std::setprecision(2) << setw(2) << Time_Delay_1.time_delay_min;
 
-          if (Process_Time.time_delay > 16)
+          if (Process_Time.time_delay > 20)
             cout << " " << Process_Time.time_delay_max << "             ";
           cout << "   Process_Time cur/avg/max/min: " << std::setprecision(2) << setw(4) << Process_Time.time_delay;
-          cout << " " << std::setprecision(2) << setw(4) << Process_Time.time_delay_avg;
-          cout << " " << std::setprecision(2) << setw(4) << Process_Time.time_delay_max;
-          cout << " " << std::setprecision(2) << setw(4) << Process_Time.time_delay_min;
+          cout << " " << std::setprecision(2) << setw(2) << Process_Time.time_delay_avg;
+          cout << " " << std::setprecision(2) << setw(2) << Process_Time.time_delay_max;
+          cout << " " << std::setprecision(2) << setw(2) << Process_Time.time_delay_min;
 
           cout << "    display time: " << Time_Delay_2.time_delay << "  " << Time_Delay_2.time_delay_avg;
           cout << "    waitkey time: " << Time_Delay_3.time_delay;
