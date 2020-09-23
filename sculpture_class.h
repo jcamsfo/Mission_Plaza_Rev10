@@ -158,7 +158,7 @@ public:
   UMat_Type VP3x_Rotated_FU;
   UMat_Type VP4x_Rotated_FU;
 
-  UMat_Type Alpha_Fade_FU, Alpha_Fade_Inv_FU;
+  UMat_Type Combined_Alpha_Fade_FU, Alpha_Fade_Inv_FU;
 
   Mat Sample_Point_Mat;
 

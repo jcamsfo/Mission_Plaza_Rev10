@@ -7,7 +7,6 @@
 
 #include <iostream>
 
-
 #include "defines_Mission_Plaza.h"
 #include "player_class.h"
 #include "measure2.h"
@@ -100,11 +99,10 @@ void Video_Player_With_Processing::setup(string File_Name, string NameX, bool Mo
   Gain = 1.;
   Black_Level = 0;
   Color_Gain = 2;
-  Image_Gamma = 0;  
+  Image_Gamma = 0;
 
   // figure out where to put this as it's for the building not so much for the picture
   // like color correction
-
 };
 
 void Video_Player_With_Processing::VideoSetup(string File_Name, string NameX)
@@ -209,7 +207,6 @@ void Video_Player_With_Processing::StillSetup(string File_Name, string NameX)
   Alpha_Channel_Inv_FU = Alpha_Channel_Inv_F;
 #endif
 
-
   // to view the appha channel
   // Alpha_Channel_F.convertTo(VideoMain, CV_8U, 255, 0);
 
@@ -276,9 +273,6 @@ void Video_Player_With_Processing::StillSetupWithAlpha(string File_Name, string 
   VideoChannels4[1].copyTo(VideoChannels3[1]);
   VideoChannels4[2].copyTo(VideoChannels3[2]);
   merge(VideoChannels3, 3, VideoMain);
-
-
-
 
   // note from here down this assumes the transparencey alpha tif mode vs  separate alpha
 
@@ -349,10 +343,7 @@ void Video_Player_With_Processing::AlphaSetupNoProcess(string File_Name, string 
   VideoMainAlpha.convertTo(Alpha_Channel_FU, CV_32F, .0039216);
 
   display_name = NameX;
-
 };
-
-
 
 void Video_Player_With_Processing::Process(void)
 {
@@ -395,7 +386,7 @@ void Video_Player_With_Processing::Process(void)
     blur(VideoMain_FU, VideoMain_FU, Size(7, 7));
 
   // gain and black level
-  VideoMain_FU.convertTo(VideoMain_FU, -1, Gain, Black_Level*100);
+  VideoMain_FU.convertTo(VideoMain_FU, -1, Gain, Black_Level * 100);
 
   // post gain gamma correction
   RGB_Gamma_Correction(VideoMain_FU, Image_Gamma);
@@ -426,10 +417,7 @@ void Video_Player_With_Processing::Process(void)
 #else
   VideoProc_FU.convertTo(VideoDisplay, CV_8UC3);
 #endif
-
 }
-
-
 
 void Video_Player_With_Processing::AlphaProcess(void)
 {
@@ -455,6 +443,12 @@ void Video_Player_With_Processing::AlphaProcess(void)
     blur(Alpha_Channel_FU, Alpha_Channel_FU, Size(7, 7));
 
   Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+#ifdef UMat_Enable
+  Alpha_Channel_Inv_F.copyTo(Alpha_Channel_Inv_FU);
+#else
+  Alpha_Channel_Inv_FU = Alpha_Channel_Inv_F;
+#endif
+
   // filter choices in-series allowable   ***  NOMINAL 3 & 5 on  ***
   if (Ones2x2_A)
     blur(Alpha_Channel_Inv_FU, Alpha_Channel_Inv_FU, Size(2, 2));

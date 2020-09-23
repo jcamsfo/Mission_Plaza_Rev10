@@ -93,10 +93,7 @@ struct Operator
 Video_Sculpture::Video_Sculpture(void)
 {
 
-
-
   Sampled_Buffer_RGBW = new uint16_t[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
-
 
   Sampled_Buffer_RGBW = new uint16_t[Sculpture_Size_RGBW]; //  16 bit   4 * 13116  52464
 
@@ -164,7 +161,7 @@ Video_Sculpture::Video_Sculpture(void)
 
   Watch_V_Location = -100;
 
-  Watch_H_Location_Inc_F = 1;  
+  Watch_H_Location_Inc_F = 1;
 
   Watch_H_Size_Begin = .35;
   Watch_H_Size_End = .95;
@@ -174,11 +171,10 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_On = true;
   D_Clock_Selected = false;
 
-  Downstream_Gain = .2 ;
+  Downstream_Gain = .2;
   Start_Up_Gain = 0;
 
   Bypass_Output_Gain = false;
-
 };
 
 // void Video_Sculpture::Read_Maps(void)
@@ -197,13 +193,13 @@ void Video_Sculpture::Read_Maps(void)
 
   Read_1D(Sculpture_Map, "../../Maps/Mission_Plaza_Sculpture_Map.csv");
 
-  dates  = Read_YAML_Data("../SF-Sunrise-Sunset.yml", Sun_Info   );
+  dates = Read_YAML_Data("../SF-Sunrise-Sunset.yml", Sun_Info);
 
   Convert_Sun_File(Sun_Info, Sun_Dates_Times);
 
-
-    for(int aa=0; aa<12; aa++)
-        for(int bb=0; bb<5; bb++)printf("%d  %d   %d  %d %d \n",aa, bb, Sun_Dates_Times[aa][bb][0], Sun_Dates_Times[aa][bb][1] , Sun_Dates_Times[aa][bb][2]  );
+  for (int aa = 0; aa < 12; aa++)
+    for (int bb = 0; bb < 5; bb++)
+      printf("%d  %d   %d  %d %d \n", aa, bb, Sun_Dates_Times[aa][bb][0], Sun_Dates_Times[aa][bb][1], Sun_Dates_Times[aa][bb][2]);
   //  exit(0);
 
   // ignore the 1st line of descriptions
@@ -315,7 +311,6 @@ inline void Video_Sculpture::Shrink_Object(UMat_Type &src, UMat_Type &src_alpha,
   resized_alpha.copyTo(dst_alpha(cv::Rect(x, y, resized_alpha.cols, resized_alpha.rows)));
 }
 
-
 void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, int x, int y)
 {
 
@@ -336,17 +331,15 @@ void Video_Sculpture::Display_Text_Mat(char Window_Name[100], Mat &text_window, 
   putText(text_window, format("Watch Gain %.2f  C Gain %.2f  Black %.2f  Gamma %.2f  ", VP2x.Gain, VP2x.Color_Gain, VP2x.Black_Level, VP2x.Image_Gamma), Point(10, 50), Font_Type, .4, Watch_Color, 0, LINE_AA);
   putText(text_window, format("H Speed %.2f  V Speed %.2f size %.2f  AutoSize %d  Watch %d", Watch_H_Location_Inc_F, Watch_V_Location_Inc, Watch_H_Size, Select_Auto, Watch_On), Point(10, 70), Font_Type, .4, Watch_Color, 0, LINE_AA);
 
-  putText(text_window, format("Downstream Gain %.2f   Sun_Gain  %.2f   Final_Output_Gain %.2f", Downstream_Gain, Sun_Gain, Final_Output_Gain), Point(10, 120), Font_Type, .4, Onnn, 0, LINE_AA);  
+  putText(text_window, format("Downstream Gain %.2f   Sun_Gain  %.2f   Final_Output_Gain %.2f", Downstream_Gain, Sun_Gain, Final_Output_Gain), Point(10, 120), Font_Type, .4, Onnn, 0, LINE_AA);
 
-  putText(text_window, format("Out Gain Bypassed  %d ", Bypass_Output_Gain), Point(10, 150), Font_Type, .4, Onnn, 0, LINE_AA);  
-
+  putText(text_window, format("Out Gain Bypassed  %d ", Bypass_Output_Gain), Point(10, 150), Font_Type, .4, Onnn, 0, LINE_AA);
 
   // Scalar  	color,
   // 	int  	thickness = 1,
   // 	int  	lineType = LINE_8,
   // 	bool  	bottomLeftOrigin = false
   // )
-
 
   // LINE_AA
 
@@ -594,8 +587,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
           file_name += "waves.mp4";
 
         else if (New_Image_Number == 45)
-          file_name += "paint.mp4";     
-
+          file_name += "paint.mp4";
 
         else if (New_Image_Number == 46)
           file_name += "wrxz100.mov";
@@ -625,7 +617,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
           file_name += "wrn20z70.mov";
 
         else if (New_Image_Number == 55)
-          file_name += "wrxz100smooth.mov";               
+          file_name += "wrxz100smooth.mov";
 
         VP1x.VideoSetup(file_name, "0");
       }
@@ -643,24 +635,23 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
     //     Sequence_On = true; // start on 's'
     // }
 
-      if (kp == '<')
-      {
-        Downstream_Gain -= .01;
-        if (Downstream_Gain < 0)
-          Downstream_Gain = 0;
-      }
-      else if (kp == '>')
-      {
-        Downstream_Gain += .01;
-        if (Downstream_Gain > 2)
-          Downstream_Gain= 1;
-      }
+    if (kp == '<')
+    {
+      Downstream_Gain -= .01;
+      if (Downstream_Gain < 0)
+        Downstream_Gain = 0;
+    }
+    else if (kp == '>')
+    {
+      Downstream_Gain += .01;
+      if (Downstream_Gain > 2)
+        Downstream_Gain = 1;
+    }
 
-      else if (kp == 'f')
-      {
-        Bypass_Output_Gain = !Bypass_Output_Gain;
-      }
-
+    else if (kp == 'f')
+    {
+      Bypass_Output_Gain = !Bypass_Output_Gain;
+    }
 
     else if (Select_Controls == 0)
     {
@@ -780,18 +771,18 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
         VP2x.Process();
       }
 
-
-      if (kp == 'g') 
+      if (kp == 'g')
       {
         Watch_H_Location_Inc_F -= .1;
-        if(Watch_H_Location_Inc_F < 0)Watch_H_Location_Inc_F = 0 ;
+        if (Watch_H_Location_Inc_F < 0)
+          Watch_H_Location_Inc_F = 0;
       }
       else if (kp == 'h')
       {
         Watch_H_Location_Inc_F += .1;
-        if(Watch_H_Location_Inc_F > 5.)Watch_H_Location_Inc_F = 5. ;
+        if (Watch_H_Location_Inc_F > 5.)
+          Watch_H_Location_Inc_F = 5.;
       }
-
 
       if ((kp == 'c') && (Watch_V_Location_Inc >= .05))
       {
@@ -833,7 +824,7 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 void Video_Sculpture::Play_All(void)
 {
 
-  Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset );
+  Sun_Gain = Day_Night_Final_Gain(Sun_Dates_Times, Current_Sunrise, Current_Sunset);
 
   // all of the other images are stills!!!!!!!!!!!!!!!!!!
   VP1x.Process();
@@ -951,10 +942,9 @@ void Video_Sculpture::Mixer(void)
   // wraps automatically
   // Watch_H_Location += Watch_H_Location_Inc;
 
+  Watch_H_Location_F += Watch_H_Location_Inc_F;
 
-  Watch_H_Location_F += Watch_H_Location_Inc_F;  
-
-  Watch_H_Location = (int)( Watch_H_Location_F + .5);
+  Watch_H_Location = (int)(Watch_H_Location_F + .5);
 
   // Watch_H_Location = 0;
 
@@ -981,26 +971,26 @@ void Video_Sculpture::Mixer(void)
   // New_Timer.End_Delay_Timer();
   // cout << " New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;
 
-  // check duration of Build
-  // Watch_With_Both = VP2x.VideoProc_FU.clone();
-
-  // works
-  // Shift_Image_Vertical_U(Alpha_Fade_Shifted_FU, 50, VP2x.Ones_Float_Mat_U);
-  // seems faster
-  // set the location of the watch vertical fader
-
   // NUC .22 ms
   Shift_Image_Vertical_U2(AP1x.Alpha_Channel_FU, Alpha_Fade_Shifted_FU, Fade_V_Location, VP2x.Ones_Float_Mat_U);
 
   // multiply the 2 alphas the watch alpha and the fade alpha  // NUC .12 ms
-  multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Alpha_Fade_FU);
+  multiply(Alpha_Fade_Shifted_FU, VP2x.Alpha_Channel_Inv_FU, Combined_Alpha_Fade_FU);
+
 
   // generate the final watch matted image  // NUC .12 ms
-  multiply(Watch_With_Both, Alpha_Fade_Shifted_FU, Watch_With_Both_Faded_U);
+  multiply(Watch_With_Both, Combined_Alpha_Fade_FU, Watch_With_Both_Faded_U);
+
+
+  //   Watch_With_Both_Faded_U.convertTo(DisplayTemp, CV_8U,10000000);
+  // imshow("17", DisplayTemp);
+
 
   // this shrinks the watch and its alpha , but puts them back in a full size Mat
   // NUC  .54 ms
-  Shrink_Object(Watch_With_Both_Faded_U, Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);
+  Shrink_Object(Watch_With_Both_Faded_U, Combined_Alpha_Fade_FU, VideoSum_Comp_FU, Alpha_Comp_FU, Watch_H_Size, Watch_V_Size);  
+
+
 
   //  useful for isolating the scaling problem
   // UMat_Type Mat_Temp;
@@ -1016,6 +1006,8 @@ void Video_Sculpture::Mixer(void)
   // this rotates the watch and its alpha   // NUC 1.7 ms for both
   rotate2(VideoSum_Comp_FU, VideoSum_FUE, Watch_Angle);
   rotate2(Alpha_Comp_FU, Alpha_Rotated_U, Watch_Angle);
+
+
 
   // this moves the watch and its alpha horizontally and vertically (works out of frame also)  // NUC .5 ms for both
   Shift_Image_Horizontal_Vertical_U3(VideoSum_FUE, Watch_Shifted_FU, Watch_H_Location, (int)Watch_V_Location, VP2x.Zeros_Float_Mat_U);
@@ -1039,51 +1031,40 @@ void Video_Sculpture::Mixer(void)
 
   VideoSum_For_Output_FU = VideoSum_FU.clone();
 
-
   Start_Up_Gain += .005;
-  if(Start_Up_Gain > 1)Start_Up_Gain = 1;
+  if (Start_Up_Gain > 1)
+    Start_Up_Gain = 1;
   Final_Output_Gain = Downstream_Gain * Sun_Gain * Start_Up_Gain;
 
   VideoSum_For_Output_FU *= Final_Output_Gain;
-
-
 }
-
-
-
 
 void Video_Sculpture::Multi_Map_Image_To_Sculpture(void)
 {
-  // .28 ms  
+  // .28 ms
   New_Timer.Start_Delay_Timer();
   // Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( );
-  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( VideoSum_For_Output_FU);  
+  Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(VideoSum_For_Output_FU);
   New_Timer.End_Delay_Timer();
-  cout << endl  << "    New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;  
+  cout << endl
+       << "    New_Timer.time_delay  " << New_Timer.time_delay_avg << endl;
 
-  if(Bypass_Output_Gain)
-    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( VideoSum_FU, Sampled_Buffer_RGBW_View) ;  
+  if (Bypass_Output_Gain)
+    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(VideoSum_FU, Sampled_Buffer_RGBW_View);
   else
-    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8( VideoSum_For_Output_FU, Sampled_Buffer_RGBW_View) ;  
-
+    Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(VideoSum_For_Output_FU, Sampled_Buffer_RGBW_View);
 
   // .065 ms
   Map_Subsampled_To_Sculpture();
 
   // .15 ms
   Generate_Subsampled_Image_For_Test();
-
-
-
-  
 }
-
-
 
 // this was the fastet way that I measured
 void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void)
 {
- //  time_test.Start_Delay_Timer();
+  //  time_test.Start_Delay_Timer();
   int xx_arr, yy_arr, yy, xx;
   int inc = 0;
   uint16_t rz, gz, bz, wz, Sub_Valz;
@@ -1139,15 +1120,14 @@ void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(void
     }
   }
 
-//  time_test.End_Delay_Timer();
+  //  time_test.End_Delay_Timer();
   // cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
-
 
 // this was the fastet way that I measured
 void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type &Vid_Src)
 {
- //  time_test.Start_Delay_Timer();
+  //  time_test.Start_Delay_Timer();
   int xx_arr, yy_arr, yy, xx;
   int inc = 0;
   uint16_t rz, gz, bz, wz, Sub_Valz;
@@ -1203,15 +1183,14 @@ void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat
     }
   }
 
-//  time_test.End_Delay_Timer();
+  //  time_test.End_Delay_Timer();
   // cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
 
-
 // for test monitoring
-void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type &Vid_Src, uint16_t *RGBW_Array  )
-{ 
- //  time_test.Start_Delay_Timer();
+void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat_Type &Vid_Src, uint16_t *RGBW_Array)
+{
+  //  time_test.Start_Delay_Timer();
   int xx_arr, yy_arr, yy, xx;
   int inc = 0;
   uint16_t rz, gz, bz, wz, Sub_Valz;
@@ -1267,10 +1246,9 @@ void Video_Sculpture::Save_Samples_From_CSV_Map_To_Buffer_RGBW_Convert_Rev8(UMat
     }
   }
 
-//  time_test.End_Delay_Timer();
+  //  time_test.End_Delay_Timer();
   // cout << Sampled_Buffer_RGBW[0] / 256 << " ggg " << Sampled_Buffer_RGBW[1] / 256 << "  " << Sampled_Buffer_RGBW[2] / 256 << "  " << time_test.time_delay << endl;
 }
-
 
 // formerly known as Panel_Mapper
 // maps the image sub samples to the panel using the panel map
@@ -1319,7 +1297,6 @@ void Video_Sculpture::Map_Subsampled_To_Sculpture(void)
 //   resize(Subsampled_Display_Small, Subsampled_Display_Large, Size(), 5, 5, INTER_LINEAR);
 // }
 
-
 void Video_Sculpture::Generate_Subsampled_Image_For_Test(void)
 {
 
@@ -1352,9 +1329,6 @@ void Video_Sculpture::Generate_Subsampled_Image_For_Test(void)
 
   resize(Subsampled_Display_Small, Subsampled_Display_Large, Size(), 5, 5, INTER_LINEAR);
 }
-
-
-
 
 void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Mat src) // , int Display_Type)
 {
@@ -1395,7 +1369,6 @@ void Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map(cv::Ma
   time_test.End_Delay_Timer();
   cout << " lower " << time_test.time_delay << endl;
 }
-
 
 void Video_Sculpture::Video_Sculpture::Add_Visible_Sample_Locations_From_Sample_Points_Map_Ver2(cv::Mat src)
 {
@@ -1459,9 +1432,9 @@ void Video_Sculpture::Display(void)
       destroyWindow("2");
     if (cv::getWindowProperty("3", WND_PROP_AUTOSIZE) != -1)
       destroyWindow("3");
-  //   if (cv::getWindowProperty("output", WND_PROP_AUTOSIZE) != -1)
-  //     destroyWindow("output");
- }
+    //   if (cv::getWindowProperty("output", WND_PROP_AUTOSIZE) != -1)
+    //     destroyWindow("output");
+  }
 }
 
 // this was the fastet way that I measured
