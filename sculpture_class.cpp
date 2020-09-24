@@ -172,7 +172,7 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_H_Location_Inc_F = .5;
 
   Watch_H_Size_Begin = .5;
-  Watch_H_Size_End = 1;
+  Watch_H_Size_End = 1.2;
 
   Select_Controls = 0;
   Select_Auto = true;
@@ -857,12 +857,6 @@ void Video_Sculpture::Play_All(void)
   // std::thread t3(&Video_Player_With_Processing::Process, &VP3x);
   // std::thread t4(&Video_Player_With_Processing::Process, &VP4x);
 
-  // t1.join();
-  // t2.join();
-  // t3.join();
-  // t4.join();
-
-  // std::thread t5(&Video_Player_With_Processing::AlphaProcess, &VP2x);
   // std::thread t6(&Video_Player_With_Processing::AlphaProcess, &VP3x);
   // std::thread t7(&Video_Player_With_Processing::AlphaProcess, &VP4x);
   // t5.join();
@@ -939,6 +933,7 @@ void Video_Sculpture::Mixer(void)
 
   // if (Watch_V_Size >= .8)
   //   Watch_V_Size_Inc = -.0001;
+
   // else if (Watch_V_Size <= .3)
   //   Watch_V_Size_Inc = .001;
   // Watch_V_Size += Watch_V_Size_Inc;
@@ -947,8 +942,10 @@ void Video_Sculpture::Mixer(void)
 
   float Watch_H_Size_Auto = V_Percent * (Watch_H_Size_End - Watch_H_Size_Begin) + Watch_H_Size_Begin;
 
+  float Watch_H_Size_Auto_Clipped = (Watch_H_Size_Auto > 1) ? 1 : Watch_H_Size_Auto ;
+
   if (Select_Auto)
-    Watch_H_Size = Watch_H_Size_Auto;
+    Watch_H_Size = Watch_H_Size_Auto_Clipped;
 
   Watch_V_Size = Watch_H_Size;
 
