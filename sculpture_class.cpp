@@ -113,13 +113,13 @@ Video_Sculpture::Video_Sculpture(void)
   // VP3x.StillSetup("../../Movies/alpha_trans.tif", "3");
 
 // VideoSetup(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
-  VP1x.VideoSetup("../../Movies/wrxz100.mov", "0", 1, -.5, 1, .5);
+  VP1x.VideoSetup("../../Movies/wrxz100.mov", "0", 1, 0, .5, .65);
 
   // VP1x.VideoSetup("../../Movies/wrxz100.mov", "0");
   //VP2x.StillSetupRev2("../../Movies/watch_SM.tif", "1");
 
   // StillSetupWithAlpha(string File_Name, string NameX, float Gain_In, float Black_Level_In, float Color_Gain_In, float Gamma_In)
-  VP2x.StillSetupWithAlpha("../../Movies/wtc3s.tif", "1", 1, -.5, 1, .5);
+  VP2x.StillSetupWithAlpha("../../Movies/wtc3s.tif", "1", 1, 0, .5, .65);
 
   VP3x.StillSetupWithAlpha("../../Movies/smallhand.tif", "2");
   VP4x.StillSetupWithAlpha("../../Movies/bighand.tif", "3");
@@ -179,7 +179,7 @@ Video_Sculpture::Video_Sculpture(void)
   Watch_On = true;
   D_Clock_Selected = false;
 
-  Downstream_Gain = .2;
+  Downstream_Gain = .54;
   Start_Up_Gain = 0;
 
   Bypass_Output_Gain = false;
@@ -626,8 +626,8 @@ void Video_Sculpture::KeyBoardInput(unsigned char &kp, bool &Stop_Program)
 
         else if (New_Image_Number == 55)
           file_name += "wrxz100smooth.mov";
-
-        VP1x.VideoSetup(file_name, "0");
+        VP1x.VideoSetup(file_name, "0", 1, 0, .5, .65);
+      //  VP1x.VideoSetup(file_name, "0");
       }
 
       cout << endl
